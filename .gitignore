@@ -172,3 +172,14 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Ignore output videos
+output/
+
+# Ignore scripts that are currently work in progress
+compare_trajectories.py
+merge_videos.py
+warp_video.py
+
+# .DS_store
+.DS_Store
