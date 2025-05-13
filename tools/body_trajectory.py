@@ -41,7 +41,7 @@ def main():
         draw_pose=True,
         kalman_settings=[  # Kalman filter settings: [use_kalman, kalman_gain]
             True,
-            1e0,  # >=1e0 for higher noise, <=1e-1 for lower noise
+            1e1,  # >=1e0 for higher noise, <=1e-1 for lower noise
         ],
     )
 

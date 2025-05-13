@@ -2,7 +2,6 @@ import numpy as np
 
 
 # SimpleKalmanFilter implements a basic Kalman filter for smoothing noisy measurements.
-# - https://stackoverflow.com/questions/52450681/how-can-i-use-smoothing-techniques-to-remove-jitter-in-pose-estimation
 class SimpleKalmanFilter:
     def __init__(self, process_variance=1e-2, measurement_variance=1e-1):
         # process_variance: expected variance in the process (model) dynamics
@@ -20,6 +19,7 @@ class SimpleKalmanFilter:
             self.posteri_estimate = np.array(measurement, dtype=np.float32)
             # Return the initial estimate as an integer tuple
             return tuple(self.posteri_estimate.astype(int))
+
         # Predict step: use previous estimate as the prior
         priori_estimate = self.posteri_estimate
         # Increase error estimate by process variance
