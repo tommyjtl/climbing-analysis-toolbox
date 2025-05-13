@@ -39,7 +39,10 @@ def main():
         overlay_trajectory=True,
         show_gauges=False,
         draw_pose=True,
-        kalman_settings=[True, 1e0],
+        kalman_settings=[  # Kalman filter settings: [use_kalman, kalman_gain]
+            True,
+            1e0,  # >=1e0 for higher noise, <=1e-1 for lower noise
+        ],
     )
 
 
