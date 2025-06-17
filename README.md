@@ -6,11 +6,11 @@ A set of computer vision tools for analyzing your climbing videos.
 
 ```shell
 # (Optional) Create an virtual env
-python -m venv PATH_TO_YOUR_ENV
-source PATH_TO_YOUR_ENV
+python -m venv PATH_TO_YOUR_VENV
+source PATH_TO_YOUR_VENV
 ```
 
-```bash
+```shell
 # Install prerequisites
 python -m pip install -r requirements.txt
 ```
@@ -24,7 +24,15 @@ python -m pip install -r requirements.txt
 
 ### Warping Video for Scene Matching
 
-> To be edited.
+
+```shell
+python tools/warp_video.py \
+--src_video_path "../videos/2.mp4" \
+--ref_img "../videos/reference.jpg" \
+--type "fixed" # Using fixed H from the first frame by default
+```
+
+> To be completed.
 
 ### Drawing Trajectories for Body Movements
 
@@ -46,7 +54,7 @@ Then, run the command as follows:
 
 ```shell
 python tools/body_trajectory.py --video_path \
-    "../videos/IMG_1915_converted.mp4"
+"../videos/IMG_1915_converted.mp4"
 ```
 
 The generated video will then be located inside of the `output` folder. An example generated video can be found [here](./examples/pose_trajectory_IMG_2862_converted.mp4)
