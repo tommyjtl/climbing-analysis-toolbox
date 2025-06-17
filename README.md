@@ -17,16 +17,20 @@ python -m pip install -r requirements.txt
 
 ## Catalogue
 
-1. Warping Video for Scene Matching
-2. Drawing Trajectories for Body Movements
+1. Warping Video for Scene Matching [goto](#warping-video-for-scene-matching)
+2. Drawing Trajectories for Body Movements [goto](#drawing-trajectories-for-body-movements)
 
-### 1. Warping Video for Scene Matching
+---
+
+### Warping Video for Scene Matching
 
 > To be edited.
 
-### 2. Drawing Trajectories for Body Movements
+### Drawing Trajectories for Body Movements
 
 > It is recommended to apply this script to a video with fixed camera position, i.e., no one's holding the camera.
+
+![](./examples/pose_trajectory.png)
 
 There is a couple of settings you can adjust inside the script for `extract_pose_and_draw_trajectory()`:
 
