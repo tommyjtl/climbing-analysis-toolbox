@@ -179,7 +179,6 @@ output/
 # Ignore scripts that are currently work in progress
 tools/compare_trajectories.py
 tools/merge_videos.py
-tools/warp_video.py
 
 # .DS_store
 .DS_Store
