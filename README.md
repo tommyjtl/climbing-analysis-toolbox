@@ -34,6 +34,8 @@ python tools/warp_video.py \
 
 > To be completed.
 
+---
+
 ### Drawing Trajectories for Body Movements
 
 > It is recommended to apply this script to a video with fixed camera position, i.e., no one's holding the camera.
