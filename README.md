@@ -29,7 +29,7 @@ python -m pip install -r requirements.txt
 python tools/warp_video.py \
 --src_video_path "../videos/2.mp4" \
 --ref_img "../videos/reference.jpg" \
---type "fixed" # Using fixed H from the first frame by default
+--type "fixed" # If using fixed H, it will extract the first frame for comparison
 ```
 
 > To be completed.
@@ -68,7 +68,7 @@ The generated video will then be located inside of the `output` folder. An examp
     - ["SmoothNet: A Plug-and-Play Network for Refining Human Poses in Videos (ECCV 2022)"](https://ailingzeng.site/smoothnet)
     - ["Fast 3D Pose Estimation With Out-of-Sequence Measurements"](https://dellaert.github.io/files/Ranganathan07iros.pdf)
     - ["Towards Robust and Smooth 3D Multi-Person Pose Estimation from Monocular Videos in the Wild"](https://www.youtube.com/watch?v=yrQ3ZU4zB6Q), also see [[1]](https://openaccess.thecvf.com/content/ICCV2023/papers/Park_Towards_Robust_and_Smooth_3D_Multi-Person_Pose_Estimation_from_Monocular_ICCV_2023_paper.pdf)
-    
+
 </details>
 
 ## To-do
