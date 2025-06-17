@@ -38,8 +38,6 @@ python tools/warp_video.py \
 
 > It is recommended to apply this script to a video with fixed camera position, i.e., no one's holding the camera.
 
-![](./examples/pose_trajectory.png)
-
 There is a couple of settings you can adjust inside the script for `extract_pose_and_draw_trajectory()`:
 
 | Argument | Description | 
