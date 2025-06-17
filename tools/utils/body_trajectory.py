@@ -1,6 +1,8 @@
 import cv2
-import mediapipe as mp
 import numpy as np
+
+# There's a package called `mediapipe-silicon` but it doesn't work with the latest version of `mediapipe`
+import mediapipe as mp
 
 from utils.kamlan_filter import SimpleKalmanFilter
 from utils.file_operations import get_output_path
@@ -13,16 +15,67 @@ from utils.draw_helpers import (
     get_gauge_centers,
 )
 
+trajectory_colors = {
+    "matisse": {
+        # in BGR format
+        "red": (59, 67, 183),
+        "green": (127, 161, 85),
+        "blue": (192, 112, 78),
+        "orange": (63, 125, 217),
+        "yellow": (70, 181, 223),
+        "magenta": (131, 78, 176),
+        "purple": (188, 125, 160),
+        "beige": (201, 218, 217),
+    }
+}
+
+
+colors = {
+    # B, G, R
+    "hip_mid": trajectory_colors["matisse"]["red"],
+    "upper_body_center": trajectory_colors["matisse"]["green"],
+    "head": trajectory_colors["matisse"]["blue"],
+    "left_hand": trajectory_colors["matisse"]["orange"],
+    "right_hand": trajectory_colors["matisse"]["yellow"],
+    "left_foot": trajectory_colors["matisse"]["magenta"],
+    "right_foot": trajectory_colors["matisse"]["purple"],
+}
+
+
+def save_trajectories_as_png(
+    trajectories, width, height, output_path, colors=None, thickness=2
+):
+    """
+    Save a PNG image with just the trajectories drawn.
+    Args:
+        trajectories: dict of {track_point: list of (x, y) tuples}
+        width: image width
+        height: image height
+        output_path: path to save the PNG
+        colors: dict of {track_point: (B, G, R)}
+        thickness: line thickness
+    """
+    # Create a blank black image
+    img = np.zeros((height, width, 3), dtype=np.uint8)
+    if colors is None:
+        colors = {tp: (0, 255, 255) for tp in trajectories}
+    for tp, traj in trajectories.items():
+        color = colors.get(tp, (0, 255, 255))
+        for i in range(1, len(traj)):
+            cv2.line(img, traj[i - 1], traj[i], color, thickness)
+    cv2.imwrite(output_path, img)
+
 
 def extract_pose_and_draw_trajectory(
-    video_path,  # it's better to supply a video with a fixed camera position
+    video_path,
     output_path=None,  # optional, if not provided, the output video will be saved in the `output` folder
     track_point=["hip_mid"],  # a list of track points to draw trajectory for
     overlay_trajectory=False,  # if `True``, we draw trajectory on a semi-transparent black overlay
-    overlay_opacity=0.75,  # opacity for the overlay, value should between [0.0, 1.0]
-    show_gauges=True,  # whether to show gauges and related text
+    overlay_opacity=0.8,  # opacity for the overlay, value should between [0.0, 1.0]
+    show_gauges=False,  # whether to show gauges and related text
     draw_pose=True,  # whether to draw the body pose skeleton
     kalman_settings=[True, 1e-1],  # [use_kalman, measurement_variance]
+    trajectory_png_path=None,  # NEW: optional PNG output path
 ):
     use_kalman = kalman_settings[0]  # whether to use Kalman filter
     measurement_variance = kalman_settings[1]  # variance for the Kalman filter
@@ -127,7 +180,7 @@ def extract_pose_and_draw_trajectory(
             # For each track point, calculate and store trajectory
             for tp in track_point:
                 # Set a confidence threshold
-                confidence_threshold = 0.8
+                confidence_threshold = 0.6
 
                 # Map track points to their relevant landmarks
                 if tp == "hip_mid":
@@ -254,18 +307,6 @@ def extract_pose_and_draw_trajectory(
                 trajectories[tp].append(smoothed_mid_point)
                 trajectories_3d[tp].append(mid_point_3d)
 
-            # Draw trajectories and velocity for each track point
-            colors = {
-                # B, G, R
-                "hip_mid": (42, 99, 225),
-                "upper_body_center": (119, 91, 39),
-                "head": (69, 195, 236),
-                "left_hand": (135, 73, 41),
-                "right_hand": (47, 40, 190),
-                "left_foot": (135, 73, 41),
-                "right_foot": (47, 40, 190),
-            }
-
             for idx, tp in enumerate(track_point):
                 traj = trajectories[tp]
                 traj_3d = trajectories_3d[tp]
@@ -360,6 +401,11 @@ def extract_pose_and_draw_trajectory(
 
     cap.release()
     out.release()
-
-    # Close all OpenCV windows
     cv2.destroyAllWindows()
+
+    # Save PNG with just the trajectories if requested
+    if trajectory_png_path is not None:
+        # from utils.body_trajectory import save_trajectories_as_png
+        save_trajectories_as_png(
+            trajectories, width, height, trajectory_png_path, colors=colors
+        )

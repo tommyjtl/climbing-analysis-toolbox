@@ -2,6 +2,7 @@ import argparse
 from termcolor import colored
 
 from utils.body_trajectory import extract_pose_and_draw_trajectory
+from utils.file_operations import get_output_path
 
 
 def main():
@@ -25,24 +26,35 @@ def main():
         return
     target_video_path = args.video_path
 
+    output_prefix = "pose_trajectory"
+    # Derive output video path using get_output_path
+    output_video_path = get_output_path(
+        target_video_path,
+        None,
+        output_prefix=output_prefix,
+    )
+    # Derive PNG path with same prefix and .png extension
+    trajectory_png_path = output_video_path.rsplit(".", 1)[0] + ".png"
+
     extract_pose_and_draw_trajectory(
         target_video_path,
+        output_path=output_video_path,
         track_point=[
-            # "hip_mid",
-            "upper_body_center",
+            "hip_mid",
+            # "upper_body_center",
             # "head",
             "left_hand",
             "right_hand",
-            "left_foot",
-            "right_foot",
+            # "left_foot",
+            # "right_foot",
         ],
-        overlay_trajectory=True,
-        show_gauges=False,
+        overlay_trajectory=False,
         draw_pose=True,
-        kalman_settings=[  # Kalman filter settings: [use_kalman, kalman_gain]
-            True,
-            1e1,  # >=1e0 for higher noise, <=1e-1 for lower noise
+        kalman_settings=[  # Kalman filter settings: [use_kalman : bool, kalman_gain : float]
+            True,  # Set this to false if you don't want to apply Kalman filter
+            1e0,  # >=1e0 for higher noise, <=1e-1 for lower noise
         ],
+        trajectory_png_path=None,
     )
 
 
