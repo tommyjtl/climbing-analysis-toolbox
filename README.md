@@ -1,41 +1,54 @@
 # Climbing Analysis Toolbox 
 
-A set of computer vision tools for analyzing your climbing videos.
+A set of computer vision tools for processing and analyzing your climbing videos.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Getting Started
 
 ```shell
-# (Optional) Create an virtual env
+# Create an virtual environment
 python -m venv PATH_TO_YOUR_VENV
 source PATH_TO_YOUR_VENV
 ```
 
+### Prerequisites
+
 ```shell
-# Install prerequisites
+# The following third-party dependency is needed for video warping (or scene matching)
 python -m pip install git+https://github.com/alexstoken/image-matching-models.git
+python -m pip install --upgrade cruxes # Install the latest version of this toolbox
 ```
 
-### Option 1: Install the PyPI package
-
-```shell
-# For convenience, install this as a PyPI package and run in-code example
-python -m pip install cruxes
-```
-
-### Option 2: Run the scripts locally
-
-```shell
-# If you don't want to install the PyPI package
-python -m pip install -r requirements.txt
-# You will have to run the scripts individually, see CLI usages
-```
+Only proceed to the following content once you have installed the dependencies correctly.
 
 ## Catalogue
 
+> For each section, there will be detailed example code for both CLI usage and in-code usage.
+
 1. Warping Video for Scene Matching [goto](#1️⃣-warping-video-for-scene-matching)
+
+```shell
+# Example usage:
+cruxes warp \
+--ref_img "examples/videos/warp-dynamic-ref.jpg" \
+--src_video_path "examples/videos/warp-dynamic-input.mp4"
+# [--type ...]
+```
+
 2. Drawing Trajectories for Body Movements [goto](#2️⃣-drawing-trajectories-for-body-movements)
+
+```shell
+cruxes body-trajectory \
+--video_path "examples/videos/body-trajectory-input.mp4"
+# [other options]
+```
+
+### More to Come
+
+- [ ] Heatmap for Limb Movement
+- [ ] Climbing Hold Auto-segmentation
+- [ ] Gaussian-splatting 3D Reconstructing a Climb
 
 ---
 
@@ -54,7 +67,7 @@ To warp a video to match a reference scene, we extract the features between two 
 ```shell
 # CLI usage
 # Warp a video with moving camera (per-frame homography matrix for the transformation)
-python examples/scripts/warp_video.py \
+cruxes warp \
 --ref_img "examples/videos/warp-dynamic-ref.jpg" \
 --src_video_path "examples/videos/warp-dynamic-input.mp4"
 # by default the type of warping is `dynamic`
@@ -81,7 +94,7 @@ cruxes.warp_video(
 ```shell
 # CLI usage
 # Warp a video with fixed camera (first-frame homography matrix for the transformation)
-python examples/scripts/warp_video.py \
+cruxes warp \
 --ref_img "examples/videos/warp-fixed-ref.jpg" \
 --src_video_path "examples/videos/warp-fixed-input.mp4" \
 --type "fixed"
@@ -130,7 +143,7 @@ Then, run the command as follows:
 
 ```shell
 # CLI usage
-python examples/scripts/body_trajectory.py \
+cruxes warp \
 --video_path "examples/videos/body-trajectory-input.mp4"
 ```
 
@@ -141,13 +154,14 @@ cruxes = Cruxes()
 cruxes.body_trajectory(
     "body-trajectory-input.mp4",
     track_point=[
+        # Currently available points to track
         "hip_mid",
-        # "upper_body_center",
-        # "head",
+        "upper_body_center",
+        "head",
         "left_hand",
         "right_hand",
-        # "left_foot",
-        # "right_foot",
+        "left_foot",
+        "right_foot",
     ],
     overlay_trajectory=False,
     draw_pose=True,
@@ -176,3 +190,4 @@ The generated video will then be located inside of the `output` folder.
 
 - [ ] Add a server backend to allow API request for specific functionality.
 - [x] Migrate to PyPI for easier installation and use.
+- [x] Add CLI options to run (`cruxes` instead of `python ...`)
