@@ -2,6 +2,8 @@
 
 A set of computer vision tools for analyzing your climbing videos.
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 ## Getting Started
 
 ```shell
