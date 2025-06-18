@@ -177,8 +177,12 @@ cython_debug/
 output/
 
 # Ignore scripts that are currently work in progress
-tools/compare_trajectories.py
-tools/merge_videos.py
+src/cruxes/compare_trajectories.py
+src/cruxes/merge_videos.py
 
 # .DS_store
 .DS_Store
+
+# ignore temporary files produced by helpers
+current_frame.jpg
+_temp_first_frame.jpg

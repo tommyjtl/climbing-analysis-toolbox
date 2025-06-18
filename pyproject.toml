@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=80.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cruxes"
+version = "0.0.1"
+description = "A set of computer vision tools for analyzing your climbing videos."
+readme = "README.md"
+requires-python = ">=3.11"
+license = {file = "LICENSE"}
+authors = [
+  {name = "Tommy Liu", email = "i@tjtl.io"}
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/tommyjtl/climbing-analysis-toolbox"
