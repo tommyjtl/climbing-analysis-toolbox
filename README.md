@@ -15,10 +15,14 @@ source PATH_TO_YOUR_VENV
 python -m pip install git+https://github.com/alexstoken/image-matching-models.git
 ```
 
+### Option 1: Install the PyPI package
+
 ```shell
 # For convenience, install this as a PyPI package and run in-code example
 python -m pip install cruxes
 ```
+
+### Option 2: Run the scripts locally
 
 ```shell
 # If you don't want to install the PyPI package
