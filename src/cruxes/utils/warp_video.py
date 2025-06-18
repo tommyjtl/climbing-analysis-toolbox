@@ -206,6 +206,9 @@ def warp_video_with_fixed_homography(
     if not ret_first:
         print("Error: Could not read the first frame from video.")
         return
+    # if parent_dir is empty, use current directory
+    if not parent_dir:
+        parent_dir = os.getcwd()
     temp_first_frame_path = f"{parent_dir}/_temp_first_frame.jpg"
     cv2.imwrite(temp_first_frame_path, first_frame)
     cap_first.release()

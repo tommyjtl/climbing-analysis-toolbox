@@ -89,9 +89,11 @@ python examples/scripts/warp_video.py \
 
 ```python
 # In-code usage
+from cruxes import Cruxes
 cruxes = Cruxes()
 cruxes.warp_video(
-    reference_image, target_video, 
+    "warp-fixed-ref.jpg", 
+    "warp-fixed-input.mp4", 
     warp_type="fixed"
 )
 ```
@@ -134,6 +136,7 @@ python examples/scripts/body_trajectory.py \
 
 ```python
 # In-code usage
+from cruxes import Cruxes
 cruxes = Cruxes()
 cruxes.body_trajectory(
     "body-trajectory-input.mp4",
