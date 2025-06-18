@@ -40,7 +40,7 @@ python src/cruxes/warp_video.py \
 ```
 
 <details>
-  <summary> 🎬 Example Resulting Video </summary>
+    <summary> 🎬 Example Resulting Video </summary>
     <video width="480" controls>
     <source src="examples/videos/warp-dynamic-result.mp4" type="video/mp4">
     Your browser does not support the video tag.
@@ -56,7 +56,7 @@ python src/cruxes/warp_video.py \
 ```
 
 <details>
-  <summary> 🎬 Example Resulting Video </summary>
+    <summary> 🎬 Example Resulting Video </summary>
     <video width="480" controls>
     <source src="examples/videos/warp-fixed-result.mp4" type="video/mp4">
     Your browser does not support the video tag.
@@ -67,7 +67,7 @@ python src/cruxes/warp_video.py \
 
 ### Drawing Trajectories for Body Movements
 
-> It is recommended to apply this script to a video with fixed camera position, i.e., no one's holding the camera.
+> It is recommended to apply this script to a video with fixed camera position, i.e., camera is not being moved.
 
 There is a couple of settings you can adjust inside the script for `extract_pose_and_draw_trajectory()`:
 
@@ -82,25 +82,20 @@ There is a couple of settings you can adjust inside the script for `extract_pose
 Then, run the command as follows:
 
 ```shell
-python src/cruxes/body_trajectory.py --video_path \
-"../videos/IMG_1915_converted.mp4"
+python src/cruxes/body_trajectory.py \
+--video_path "examples/videos/body-trajectory-input.mp4"
 ```
 
 The generated video will then be located inside of the `output` folder.
 
 <details>
-  <summary> Reference </summary>
-
-- ["How can I use smoothing techniques to remove jitter in pose estimation?"](https://stackoverflow.com/questions/52450681/how-can-i-use-smoothing-techniques-to-remove-jitter-in-pose-estimation)
-- ["Savitzky–Golay filter"](https://en.wikipedia.org/wiki/Savitzky%E2%80%93Golay_filter)
-- ["Kalman filter"](https://en.wikipedia.org/wiki/Kalman_filter)
-- Papers
-    - ["Temporal Smoothing for 3D Human Pose Estimation and Localization for Occluded People"](https://arxiv.org/abs/2011.00250)
-    - ["SmoothNet: A Plug-and-Play Network for Refining Human Poses in Videos (ECCV 2022)"](https://ailingzeng.site/smoothnet)
-    - ["Fast 3D Pose Estimation With Out-of-Sequence Measurements"](https://dellaert.github.io/files/Ranganathan07iros.pdf)
-    - ["Towards Robust and Smooth 3D Multi-Person Pose Estimation from Monocular Videos in the Wild"](https://www.youtube.com/watch?v=yrQ3ZU4zB6Q), also see [[1]](https://openaccess.thecvf.com/content/ICCV2023/papers/Park_Towards_Robust_and_Smooth_3D_Multi-Person_Pose_Estimation_from_Monocular_ICCV_2023_paper.pdf)
-
+    <summary> 🎬 Example Resulting Video </summary>
+    <video width="480" controls>
+    <source src="examples/videos/body-trajectory-result.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+    </video>
 </details>
+
 
 ## To-do
 
