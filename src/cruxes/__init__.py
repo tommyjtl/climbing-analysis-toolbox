@@ -7,6 +7,7 @@ from .utils.file_operations import get_output_path
 from .utils.warp_video import warp_video_with_per_frame_homography
 from .utils.warp_video import warp_video_with_fixed_homography
 from .utils.body_trajectory import extract_pose_and_draw_trajectory
+from .utils.compare_trajectories import extract_pose_and_draw_trajectory_compare
 
 
 class Cruxes:
@@ -117,4 +118,49 @@ class Cruxes:
             draw_pose=draw_pose,
             kalman_settings=kalman_settings,
             trajectory_png_path=trajectory_png_path,
+        )
+
+    def compare_trajectories(
+        self,
+        input_video_paths=[],
+        track_points=[
+            "hip_mid",
+            # "upper_body_center",
+            # "head",
+            "left_hand",
+            "right_hand",
+            # "left_foot",
+            # "right_foot",
+        ],
+    ):
+        # Check if input_video_paths is empty
+        if not input_video_paths:
+            print(
+                colored(
+                    "Warning: No input video paths provided. Please provide at least one video path.",
+                    "red",
+                )
+            )
+            return
+
+        output_prefix = "compare_trajectories"
+        # Derive output video path using get_output_path
+        output_video_path = get_output_path(
+            input_video_paths[0] if input_video_paths else None,
+            None,
+            output_prefix=output_prefix,
+        )
+
+        extract_pose_and_draw_trajectory_compare(
+            # [
+            #     "/Volumes/Climbing Videos/previous/v4-6_green_tagmay12/successful2.mp4",
+            #     "/Volumes/Climbing Videos/previous/v4-6_green_tagmay12/successful1.mp4",
+            #     "/Volumes/Climbing Videos/previous/v4-6_green_tagmay12/failed1.mp4",
+            #     "/Volumes/Climbing Videos/previous/v4-6_green_tagmay12/failed2.mp4",
+            #     "/Volumes/Climbing Videos/previous/v4-6_green_tagmay12/failed3.mp4",
+            #     "/Volumes/Climbing Videos/previous/v4-6_green_tagmay12/failed4.mp4",
+            # ],
+            video_paths=input_video_paths,
+            output_path=output_video_path,
+            track_points=track_points,
         )

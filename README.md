@@ -46,8 +46,12 @@ cruxes body-trajectory \
 # [other options]
 ```
 
+3. **Compare Body Trajectories across Different Climbing Footages** [Details]()
+
 ### More to Come
 
+- [ ] 3D Pose Extraction and Displaying
+- [ ] Drawing Trajectories for Body Movements across Multiple Footages
 - [ ] Heatmap for Limb Movement [[1]](https://www.instagram.com/stories/highlights/18047308238255136/)
 - [ ] Climbing Hold Auto-segmentation
 - [ ] Gaussian-splatting 3D Reconstructing a Climb
@@ -187,6 +191,16 @@ The generated video will then be located inside of the `output` folder.
 </details>
 
 > If you can't see the example resulting video, go to the [example/videos/](./examples/videos/) folder.
+
+---
+
+### 3️⃣ Compare Body Trajectories across Different Climbing Footages
+
+```shell
+
+```
+
+---
 
 ## To-do
 

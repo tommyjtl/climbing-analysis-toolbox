@@ -177,8 +177,12 @@ cython_debug/
 output/
 
 # Ignore scripts that are currently work in progress
-src/cruxes/compare_trajectories.py
-src/cruxes/merge_videos.py
+src/cruxes/utils/compare_trajectories.py
+src/cruxes/utils/merge_videos.py
+src/cruxes/utils/plot_pose.py
+
+examples/scripts/plot_pose_demo.py
+examples/scripts/compare_trajectories_demo.py
 
 # .DS_store
 .DS_Store

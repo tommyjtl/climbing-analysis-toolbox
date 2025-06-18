@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cruxes"
-version = "0.0.13"
+version = "0.0.14"
 description = "A set of computer vision tools for analyzing your climbing videos."
 readme = "README.md"
 requires-python = ">=3.11"
