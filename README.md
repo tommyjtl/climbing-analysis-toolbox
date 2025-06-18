@@ -24,7 +24,6 @@ python -m pip install -r requirements.txt
 
 ### Warping Video for Scene Matching
 
-
 ```shell
 python tools/warp_video.py \
 --src_video_path "../videos/2.mp4" \
@@ -57,7 +56,7 @@ python tools/body_trajectory.py --video_path \
 "../videos/IMG_1915_converted.mp4"
 ```
 
-The generated video will then be located inside of the `output` folder. An example generated video can be found [here](./examples/pose_trajectory_IMG_2862_converted.mp4)
+The generated video will then be located inside of the `output` folder.
 
 <details>
   <summary> Reference </summary>
@@ -75,4 +74,5 @@ The generated video will then be located inside of the `output` folder. An examp
 
 ## To-do
 
-- [ ] Add a server backend to allow API request for specific functionality
+- [ ] Migrate to PyPI for easier installation and use.
+- [ ] Add a server backend to allow API request for specific functionality.

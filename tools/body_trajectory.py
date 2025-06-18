@@ -48,7 +48,7 @@ def main():
             # "left_foot",
             # "right_foot",
         ],
-        overlay_trajectory=False,
+        overlay_trajectory=True,
         draw_pose=True,
         kalman_settings=[  # Kalman filter settings: [use_kalman : bool, kalman_gain : float]
             True,  # Set this to false if you don't want to apply Kalman filter

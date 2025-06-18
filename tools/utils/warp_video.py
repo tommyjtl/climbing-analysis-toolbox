@@ -174,7 +174,12 @@ def compute_homography_once(img_reference_path, target_image_path, matcher):
 
 
 def warp_video_with_fixed_homography(
-    img_reference_path, target_video_path, matcher, parent_dir, output_video_path
+    img_reference_path,
+    target_video_path,
+    matcher,
+    parent_dir,
+    output_video_path,
+    overlay_text=True,
 ):
     file_name = os.path.splitext(os.path.basename(target_video_path))[0]
     ref_img = cv2.imread(img_reference_path)
@@ -229,8 +234,13 @@ def warp_video_with_fixed_homography(
                     print("Finished reading the video.")
                     break
                 img1_np = tensor_to_np(frame)
+
                 # Add file name text to the top left corner of the target frame (after warped, not combined)
-                img1_np_with_text = add_text_to_image(img1_np.copy(), file_name)
+                if overlay_text:
+                    img1_np_with_text = add_text_to_image(img1_np.copy(), file_name)
+                else:
+                    img1_np_with_text = img1_np.copy()
+
                 warped_img1_np = warp_image(
                     img1_np_with_text, H_inv, (ref_width, ref_height)
                 )
@@ -249,7 +259,12 @@ def warp_video_with_fixed_homography(
 
 
 def warp_video_with_per_frame_homography(
-    img_reference_path, target_video_path, matcher, parent_dir, output_video_path
+    img_reference_path,
+    target_video_path,
+    matcher,
+    parent_dir,
+    output_video_path,
+    overlay_text=True,
 ):
     file_name = os.path.splitext(os.path.basename(target_video_path))[0]
     ref_img = cv2.imread(img_reference_path)
@@ -278,8 +293,13 @@ def warp_video_with_per_frame_homography(
                 if not ret:
                     print("Finished reading the video.")
                     break
+
                 # Add file name text to the top left corner of the target frame (after warped, not combined)
-                frame_with_text = add_text_to_image(frame.copy(), file_name)
+                if overlay_text:
+                    frame_with_text = add_text_to_image(frame.copy(), file_name)
+                else:
+                    frame_with_text = frame.copy()
+
                 warped_frame = get_warped_frame_using_diff_H(
                     img_reference_path, frame_with_text, matcher, parent_dir
                 )

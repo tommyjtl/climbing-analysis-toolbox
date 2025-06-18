@@ -31,8 +31,16 @@ def main():
         default="dynamic",
         help="Type of homography use: fixed or dynamic",
     )
+    parser.add_argument(
+        "--overlay_text",
+        type=bool,
+        default=False,
+        help="Whether to overlay text on the video frames",
+    )
     args = parser.parse_args()
-    # all arguments are required
+
+    # Check if required arguments are provided
+    # If not, print a warning and return
     if not args.src_video_path or not args.ref_img:
         print(
             colored(
@@ -49,13 +57,10 @@ def main():
         device="mps",  # default is set to `cpu`, set to `mps` is you want to utilize apple silicon
     )
 
-    # parent_dir = "/Users/tommyjtl/Documents/Projects/climbing/videos" # no `/` at the end
-    # reference_image = f"{parent_dir}/IMG_3181_converted_frame_at_4s.jpg"
-    # target_video = f"{parent_dir}/2.mp4"
-
     reference_image = args.ref_img
     target_video = args.src_video_path
     warp_type = args.type
+    overlay_text = args.overlay_text
 
     # extract parent directory from reference_image
     parent_dir = os.path.dirname(reference_image)
@@ -89,12 +94,22 @@ def main():
         # Option 1: Compute homography once using first frame of video, then warp all frames
         print("Using fixed homography for warping video.")
         warp_video_with_fixed_homography(
-            reference_image, target_video, matcher, parent_dir, output_video_path
+            reference_image,
+            target_video,
+            matcher,
+            parent_dir,
+            output_video_path,
+            overlay_text=overlay_text,
         )
     else:
         # Option 2: Compute homography for every frame
         warp_video_with_per_frame_homography(
-            reference_image, target_video, matcher, parent_dir, output_video_path
+            reference_image,
+            target_video,
+            matcher,
+            parent_dir,
+            output_video_path,
+            overlay_text=overlay_text,
         )
 
 
