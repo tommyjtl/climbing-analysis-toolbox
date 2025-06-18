@@ -33,12 +33,22 @@ Sometimes, to analyze our sequences for a climb, we typically have multiple sess
 
 To warp a video to match a reference scene, we extract the features between two frames, and then a homography matrix is extracted for the image transformation. By default, we use a per-frame homography matrix, but that also means we have to compute $H$ for each frame of the input video if the input video is moving. If the camera of your input video is not moving, we can reduce the processing time by only comparing the first frame of the video and the base scene. This reduces the computation time for the matcher we are using, so only image transformation is involved for the entire warping process. We call the first scenario `dynamic` and the second scenario `fixed`, as you can set with the `type` option.
 
+
 ```shell
 # Warp a video with moving camera (per-frame homography matrix for the transformation)
 python src/cruxes/warp_video.py \
 --src_video_path "examples/videos/warp-dynamic-input.mp4" \
 --ref_img "examples/videos/warp-dynamic-ref.jpg"
 # by default the type of warping is `dynamic`
+```
+
+```python
+cruxes = Cruxes()
+cruxes.warp_video(
+    reference_image, target_video, 
+    warp_type="dynamic",
+    overlay_text=False # Whether to overlay filename on top of the video or not
+)
 ```
 
 <details>
@@ -55,6 +65,15 @@ python src/cruxes/warp_video.py \
 --src_video_path "examples/videos/warp-fixed-input.mp4" \
 --ref_img "examples/videos/warp-fixed-ref.jpg" \
 --type "fixed"
+```
+
+```python
+cruxes = Cruxes()
+cruxes.warp_video(
+    reference_image, target_video, 
+    warp_type="fixed",
+    overlay_text=False
+)
 ```
 
 <details>
@@ -90,6 +109,29 @@ Then, run the command as follows:
 ```shell
 python src/cruxes/body_trajectory.py \
 --video_path "examples/videos/body-trajectory-input.mp4"
+```
+
+```python
+cruxes = Cruxes()
+cruxes.body_trajectory(
+    target_video_path,
+    track_point=[
+        "hip_mid",
+        # "upper_body_center",
+        # "head",
+        "left_hand",
+        "right_hand",
+        # "left_foot",
+        # "right_foot",
+    ],
+    overlay_trajectory=False,
+    draw_pose=True,
+    kalman_settings=[  # Kalman filter settings: [use_kalman : bool, kalman_gain : float]
+        True,  # Set this to false if you don't want to apply Kalman filter
+        1e0,  # >=1e0 for higher noise, <=1e-1 for lower noise
+    ],
+    trajectory_png_path=None,
+)
 ```
 
 The generated video will then be located inside of the `output` folder.

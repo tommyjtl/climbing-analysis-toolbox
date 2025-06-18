@@ -4,6 +4,8 @@ from termcolor import colored
 from utils.body_trajectory import extract_pose_and_draw_trajectory
 from utils.file_operations import get_output_path
 
+from tools import Cruxes
+
 # References for pose smoothing techniques:
 # - https://stackoverflow.com/questions/52450681/how-can-i-use-smoothing-techniques-to-remove-jitter-in-pose-estimation)
 # - https://en.wikipedia.org/wiki/Savitzky%E2%80%93Golay_filter
@@ -37,19 +39,12 @@ def main():
         return
     target_video_path = args.video_path
 
-    output_prefix = "pose_trajectory"
-    # Derive output video path using get_output_path
-    output_video_path = get_output_path(
-        target_video_path,
-        None,
-        output_prefix=output_prefix,
-    )
-    # Derive PNG path with same prefix and .png extension
-    trajectory_png_path = output_video_path.rsplit(".", 1)[0] + ".png"
+    # Print colored messages for debugging
+    print(colored("Target video path:", "blue"), target_video_path)
 
-    extract_pose_and_draw_trajectory(
+    cruxes = Cruxes()
+    cruxes.body_trajectory(
         target_video_path,
-        output_path=output_video_path,
         track_point=[
             "hip_mid",
             # "upper_body_center",
