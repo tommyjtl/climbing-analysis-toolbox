@@ -17,12 +17,12 @@ python -m pip install -r requirements.txt
 
 ## Catalogue
 
-1. Warping Video for Scene Matching [goto](#warping-video-for-scene-matching)
-2. Drawing Trajectories for Body Movements [goto](#drawing-trajectories-for-body-movements)
+1. Warping Video for Scene Matching [goto](#1️⃣-warping-video-for-scene-matching)
+2. Drawing Trajectories for Body Movements [goto](#2️⃣-drawing-trajectories-for-body-movements)
 
 ---
 
-### Warping Video for Scene Matching
+### 1️⃣ Warping Video for Scene Matching
 
 Sometimes, to analyze our sequences for a climb, we typically have multiple sessions. During those sessions, we might have the camera placed at different locations, thus pointing from different angles towards the climb we are projecting. This tool helps you transform videos so that they match a reference image that corresponds to the whole picture of your climb. Reasons for doing this are: 
 
@@ -65,7 +65,7 @@ python src/cruxes/warp_video.py \
 
 ---
 
-### Drawing Trajectories for Body Movements
+### 2️⃣ Drawing Trajectories for Body Movements
 
 > It is recommended to apply this script to a video with fixed camera position, i.e., camera is not being moved.
 
