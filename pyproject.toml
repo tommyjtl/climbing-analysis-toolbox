@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cruxes"
-version = "0.0.1"
+version = "0.0.9"
 description = "A set of computer vision tools for analyzing your climbing videos."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -16,6 +16,12 @@ classifiers = [
   "Programming Language :: Python :: 3",
   "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
+]
+dependencies = [
+  "termcolor>=3.1.0",
+  "opencv-python>=4.11.0.86",
+  "numpy>=1.26.4",
+  "mediapipe>=0.10.20"
 ]
 
 [project.urls]

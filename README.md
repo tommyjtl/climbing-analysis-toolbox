@@ -12,7 +12,18 @@ source PATH_TO_YOUR_VENV
 
 ```shell
 # Install prerequisites
+python -m pip install git+https://github.com/alexstoken/image-matching-models.git
+```
+
+```shell
+# For convenience, install this as a PyPI package and run in-code example
+python -m pip install cruxes
+```
+
+```shell
+# If you don't want to install the PyPI package
 python -m pip install -r requirements.txt
+# You will have to run the scripts individually, see CLI usages
 ```
 
 ## Catalogue
@@ -29,25 +40,27 @@ python -m pip install -r requirements.txt
 Sometimes, to analyze our sequences for a climb, we typically have multiple sessions. During those sessions, we might have the camera placed at different locations, thus pointing from different angles towards the climb we are projecting. This tool helps you transform videos so that they match a reference image that corresponds to the whole picture of your climb. Reasons for doing this are: 
 
 1. It is better for using tools that involve 2D/3D pose estimation
-2. It is easier to see how your body moves with respect to similar angles. Note that, right now, it is impossible to strictly match a video to the scene of a base image if their camera angles and positions differ by a large amount; some area might be off from base scene.
+2. It is easier to see how your body moves with respect to similar angles. Note that, right now, it is impossible to seamlessly match a video to the scene of a base image if their camera angles and positions differ by a large amount; some area might be off from base scene.
 
 To warp a video to match a reference scene, we extract the features between two frames, and then a homography matrix is extracted for the image transformation. By default, we use a per-frame homography matrix, but that also means we have to compute $H$ for each frame of the input video if the input video is moving. If the camera of your input video is not moving, we can reduce the processing time by only comparing the first frame of the video and the base scene. This reduces the computation time for the matcher we are using, so only image transformation is involved for the entire warping process. We call the first scenario `dynamic` and the second scenario `fixed`, as you can set with the `type` option.
 
 
 ```shell
+# CLI usage
 # Warp a video with moving camera (per-frame homography matrix for the transformation)
-python src/cruxes/warp_video.py \
---src_video_path "examples/videos/warp-dynamic-input.mp4" \
---ref_img "examples/videos/warp-dynamic-ref.jpg"
+python examples/scripts/warp_video.py \
+--ref_img "examples/videos/warp-dynamic-ref.jpg" \
+--src_video_path "examples/videos/warp-dynamic-input.mp4"
 # by default the type of warping is `dynamic`
 ```
 
 ```python
+# In-code usage
+from cruxes import Cruxes
 cruxes = Cruxes()
 cruxes.warp_video(
-    reference_image, target_video, 
-    warp_type="dynamic",
-    overlay_text=False # Whether to overlay filename on top of the video or not
+    "warp-dynamic-ref.jpg", 
+    "warp-dynamic-input.mp4", 
 )
 ```
 
@@ -60,19 +73,20 @@ cruxes.warp_video(
 </details>
 
 ```shell
+# CLI usage
 # Warp a video with fixed camera (first-frame homography matrix for the transformation)
-python src/cruxes/warp_video.py \
---src_video_path "examples/videos/warp-fixed-input.mp4" \
+python examples/scripts/warp_video.py \
 --ref_img "examples/videos/warp-fixed-ref.jpg" \
+--src_video_path "examples/videos/warp-fixed-input.mp4" \
 --type "fixed"
 ```
 
 ```python
+# In-code usage
 cruxes = Cruxes()
 cruxes.warp_video(
     reference_image, target_video, 
-    warp_type="fixed",
-    overlay_text=False
+    warp_type="fixed"
 )
 ```
 
@@ -107,14 +121,16 @@ There is a couple of settings you can adjust inside the script for `extract_pose
 Then, run the command as follows:
 
 ```shell
-python src/cruxes/body_trajectory.py \
+# CLI usage
+python examples/scripts/body_trajectory.py \
 --video_path "examples/videos/body-trajectory-input.mp4"
 ```
 
 ```python
+# In-code usage
 cruxes = Cruxes()
 cruxes.body_trajectory(
-    target_video_path,
+    "body-trajectory-input.mp4",
     track_point=[
         "hip_mid",
         # "upper_body_center",
@@ -149,5 +165,5 @@ The generated video will then be located inside of the `output` folder.
 
 ## To-do
 
-- [ ] Migrate to PyPI for easier installation and use.
 - [ ] Add a server backend to allow API request for specific functionality.
+- [x] Migrate to PyPI for easier installation and use.

@@ -1,14 +1,12 @@
 import argparse
 from termcolor import colored
+
+import sys
 import os
 
-from matching import get_matcher
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../src")))
 
-from utils.file_operations import get_output_path
-from utils.warp_video import warp_video_with_per_frame_homography
-from utils.warp_video import warp_video_with_fixed_homography
-
-from tools import Cruxes
+from cruxes import Cruxes
 
 
 def main():

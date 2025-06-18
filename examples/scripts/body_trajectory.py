@@ -1,10 +1,12 @@
 import argparse
 from termcolor import colored
 
-from utils.body_trajectory import extract_pose_and_draw_trajectory
-from utils.file_operations import get_output_path
+import sys
+import os
 
-from tools import Cruxes
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../src")))
+
+from cruxes import Cruxes
 
 # References for pose smoothing techniques:
 # - https://stackoverflow.com/questions/52450681/how-can-i-use-smoothing-techniques-to-remove-jitter-in-pose-estimation)

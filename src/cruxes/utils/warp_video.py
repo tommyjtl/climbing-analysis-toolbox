@@ -136,6 +136,9 @@ def get_warped_frame_using_diff_H(img_reference_path, frame, matcher, parent_dir
     """
     Warp a video frame to align with a reference image using feature matching and homography.
     """
+    # if parent_dir is empty, use current directory
+    if not parent_dir:
+        parent_dir = os.getcwd()
     temp_frame_path = f"{parent_dir}/current_frame.jpg"
     img_reference, img_target = load_and_prepare_images(
         img_reference_path, frame, matcher, temp_frame_path

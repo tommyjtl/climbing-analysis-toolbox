@@ -4,9 +4,9 @@ import numpy as np
 # There's a package called `mediapipe-silicon` but it doesn't work with the latest version of `mediapipe`
 import mediapipe as mp
 
-from utils.kamlan_filter import SimpleKalmanFilter
-from utils.file_operations import get_output_path
-from utils.draw_helpers import (
+from .kamlan_filter import SimpleKalmanFilter
+from .file_operations import get_output_path
+from .draw_helpers import (
     draw_trajectory,
     draw_velocity_arrow,
     draw_gauge,
@@ -394,7 +394,8 @@ def extract_pose_and_draw_trajectory(
                 for tp in track_point
             ]
 
-        cv2.imshow("Pose Estimation & Drawing Trajectories", frame)
+        # cv2.imshow("Pose Estimation & Drawing Trajectories", frame) # Uncomment to show the frame in a window
+
         out.write(frame)
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
