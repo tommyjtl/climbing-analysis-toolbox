@@ -65,7 +65,7 @@ python src/cruxes/warp_video.py \
     </video>
 </details>
 
-> If you can't see the example resulting video, go to the [example](./examples/videos/) folder.
+> If you can't see the example resulting video, go to the [example/videos/](./examples/videos/) folder.
 
 ---
 
@@ -103,7 +103,7 @@ The generated video will then be located inside of the `output` folder.
    
 </details>
 
-> If you can't see the example resulting video, go to the [example](./examples/videos/) folder.
+> If you can't see the example resulting video, go to the [example/videos/](./examples/videos/) folder.
 
 ## To-do
 
