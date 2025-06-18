@@ -145,7 +145,7 @@ Then, run the command as follows:
 
 ```shell
 # CLI usage
-cruxes warp \
+cruxes body-trajectory \
 --video_path "examples/videos/body-trajectory-input.mp4"
 ```
 
