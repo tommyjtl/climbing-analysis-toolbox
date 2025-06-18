@@ -190,8 +190,8 @@ The generated video will then be located inside of the `output` folder.
 
 ## To-do
 
-- [ ] Add a server backend to allow API request for specific functionality.
 - [ ] Add automated test cases
 - [ ] Add specification to notice for adding new tool kits in the future
+- [ ] Add a server backend to allow API request for specific functionality.
 - [x] Migrate to PyPI for easier installation and use.
 - [x] Add CLI options to run (`cruxes` instead of `python ...`)
