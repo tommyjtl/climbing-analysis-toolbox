@@ -26,8 +26,8 @@ python -m pip install -r requirements.txt
 
 Sometimes, to analyze our sequences for a climb, we typically have multiple sessions. During those sessions, we might have the camera placed at different locations, thus pointing from different angles towards the climb we are projecting. This tool helps you transform videos so that they match a reference image that corresponds to the whole picture of your climb. Reasons for doing this are: 
 
-- 1. It is better for using tools that involve 2D/3D pose estimation
-- 2. It is easier to see how your body moves with respect to similar angles. Note that, right now, it is impossible to strictly match a video to the scene of a base image if their camera angles and positions differ by a large amount; some area might be off from base scene.
+1. It is better for using tools that involve 2D/3D pose estimation
+2. It is easier to see how your body moves with respect to similar angles. Note that, right now, it is impossible to strictly match a video to the scene of a base image if their camera angles and positions differ by a large amount; some area might be off from base scene.
 
 To warp a video to match a reference scene, we extract the features between two frames, and then a homography matrix is extracted for the image transformation. By default, we use a per-frame homography matrix, but that also means we have to compute $H$ for each frame of the input video if the input video is moving. If the camera of your input video is not moving, we can reduce the processing time by only comparing the first frame of the video and the base scene. This reduces the computation time for the matcher we are using, so only image transformation is involved for the entire warping process. We call the first scenario `dynamic` and the second scenario `fixed`, as you can set with the `type` option.
 
