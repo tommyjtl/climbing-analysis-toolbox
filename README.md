@@ -42,8 +42,8 @@ python src/cruxes/warp_video.py \
 <details>
     <summary> 🎬 Example Resulting Video </summary>
     <video width="480" controls>
-    <source src="examples/videos/warp-dynamic-result.mp4" type="video/mp4">
-    Your browser does not support the video tag.
+        <source src="examples/videos/warp-dynamic-result.mp4" type="video/mp4">
+        Your browser does not support the video tag.
     </video>
 </details>
 
@@ -58,10 +58,12 @@ python src/cruxes/warp_video.py \
 <details>
     <summary> 🎬 Example Resulting Video </summary>
     <video width="480" controls>
-    <source src="examples/videos/warp-fixed-result.mp4" type="video/mp4">
-    Your browser does not support the video tag.
+        <source src="examples/videos/warp-fixed-result.mp4" type="video/mp4">
+        Your browser does not support the video tag.
     </video>
 </details>
+
+> If you can't see the example resulting video, go to the [example](./examples/videos/) folder.
 
 ---
 
@@ -91,11 +93,13 @@ The generated video will then be located inside of the `output` folder.
 <details>
     <summary> 🎬 Example Resulting Video </summary>
     <video width="480" controls>
-    <source src="examples/videos/body-trajectory-result.mp4" type="video/mp4">
-    Your browser does not support the video tag.
+        <source src="examples/videos/body-trajectory-result.mp4" type="video/mp4">
+        Your browser does not support the video tag.
     </video>
+   
 </details>
 
+> If you can't see the example resulting video, go to the [example](./examples/videos/) folder.
 
 ## To-do
 
