@@ -1,6 +1,6 @@
 # Climbing Analysis Toolbox 
 
-A set of computer vision tools for processing and analyzing your climbing videos.
+A set of computer vision tools for processing and analyzing your climbing videos. In my spare time, I also write about topics relevant to bouldering and computer vision [here](https://blog.tjtl.io/bouldering-and-computer-vision/).
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/release/python-3110/)
 
