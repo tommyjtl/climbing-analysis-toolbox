@@ -196,9 +196,7 @@ The generated video will then be located inside of the `output` folder.
 
 ### 3️⃣ Compare Body Trajectories across Different Climbing Footages
 
-```shell
-
-```
+> To be added.
 
 ---
 
