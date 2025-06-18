@@ -28,7 +28,7 @@ Only proceed to the following content once you have installed the dependencies c
 
 > For each section, there will be detailed example code for both CLI usage and in-code usage.
 
-1. Warping Video for Scene Matching [Details](#1️⃣-warping-video-for-scene-matching)
+1. **Warping Video for Scene Matching** [Details](#1️⃣-warping-video-for-scene-matching)
 
 ```shell
 # Example usage:
@@ -38,7 +38,7 @@ cruxes warp \
 # [--type ...]
 ```
 
-2. Drawing Trajectories for Body Movements [[1]](https://www.instagram.com/stories/highlights/18047308238255136/) [Details](#2️⃣-drawing-trajectories-for-body-movements)
+2. **Drawing Trajectories for Body Movements** [[1]](https://www.instagram.com/stories/highlights/18047308238255136/) [Details](#2️⃣-drawing-trajectories-for-body-movements)
 
 ```shell
 cruxes body-trajectory \
