@@ -183,6 +183,7 @@ src/cruxes/utils/plot_pose.py
 
 examples/scripts/plot_pose_demo.py
 examples/scripts/compare_trajectories_demo.py
+examples/scripts/draw_heatmap_demo.py
 
 # .DS_store
 .DS_Store

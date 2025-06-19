@@ -154,7 +154,10 @@ Then, run the command as follows:
 ```shell
 # CLI usage
 cruxes body-trajectory \
---video_path "examples/videos/body-trajectory-input.mp4"
+--video_path "examples/videos/body-trajectory-input.mp4" \
+--overlay_trajectory \
+--draw_pose \
+--kalman_settings 1e0
 ```
 
 ```python
