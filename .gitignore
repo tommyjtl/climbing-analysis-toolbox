@@ -182,6 +182,7 @@ src/cruxes/utils/merge_videos.py
 src/cruxes/utils/plot_pose.py
 
 examples/scripts/plot_pose_demo.py
+examples/scripts/plot_pose_demo_2.py
 examples/scripts/compare_trajectories_demo.py
 examples/scripts/draw_heatmap_demo.py
 

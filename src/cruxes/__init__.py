@@ -1,5 +1,6 @@
 from termcolor import colored
 import os
+import torch
 
 from matching import get_matcher
 
@@ -18,11 +19,24 @@ class Cruxes:
     def warp_video(
         self, ref_img, src_video_path, warp_type="dynamic", overlay_text=False
     ):
+        device = "cpu"  # default device, can be set to "mps" for Apple Silicon
+        try:
+            if torch.backends.mps.is_available():
+                device = "mps"
+        except Exception as e:
+            print(
+                colored(
+                    "Warning: MPS backend not available. Using CPU instead.",
+                    "red",
+                )
+            )
+            print(f"Error: {e}")
+
         matcher = get_matcher(
             # Available models:
             # https://github.com/alexstoken/image-matching-models?tab=readme-ov-file#available-models
-            "superpoint-lg",
-            device="mps",  # default is set to `cpu`, set to `mps` is you want to utilize apple silicon
+            "superpoint-lg",  # "superglue",  # "d2-net", "r2d2"
+            device=device,
         )
 
         reference_image = ref_img
