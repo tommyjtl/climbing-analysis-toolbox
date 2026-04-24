@@ -252,7 +252,7 @@ def _copy_pose_landmarks(landmarks):
 def _build_render_pose_landmarks(
     all_pose_landmarks,
     smoothed_pose_landmarks,
-    use_savgol,
+    use_smoothing,
     num_landmarks,
 ):
     rendered_pose_landmarks = []
@@ -263,7 +263,7 @@ def _build_render_pose_landmarks(
             continue
 
         frame_landmarks = _copy_pose_landmarks(pose_landmarks)
-        if use_savgol and frame_idx < len(smoothed_pose_landmarks):
+        if use_smoothing and frame_idx < len(smoothed_pose_landmarks):
             for lm_idx in range(num_landmarks):
                 if lm_idx in smoothed_pose_landmarks[frame_idx]:
                     lm_data = smoothed_pose_landmarks[frame_idx][lm_idx]
@@ -302,13 +302,13 @@ def _serialize_pose_landmarks_for_metadata(landmarks, width, height):
 
 
 def _build_pose_metadata(
-    rendered_pose_landmarks, effective_fps, width, height, use_savgol
+    rendered_pose_landmarks, effective_fps, width, height, smoothing
 ):
     return {
         "landmark_model": "mediapipe_pose_33",
         "landmark_count": len(PoseLandmark),
         "landmark_names": [landmark.name.lower() for landmark in PoseLandmark],
-        "render_landmarks_source": "savgol_smoothed" if use_savgol else "raw",
+        "render_landmarks_source": f"{smoothing}_smoothed" if smoothing else "raw",
         "coordinate_space": {
             "type": "pixel",
             "origin": "top_left",
@@ -760,7 +760,7 @@ def _build_trajectory_metadata(
     effective_fps,
     use_kalman,
     measurement_variance,
-    use_savgol,
+    smoothing,
     savgol_window,
     savgol_order,
     pose_metadata=None,
@@ -809,10 +809,13 @@ def _build_trajectory_metadata(
                     float(measurement_variance) if use_kalman else None
                 ),
             },
-            "savgol": {
-                "enabled": bool(use_savgol),
-                "window_length": int(savgol_window) if use_savgol else None,
-                "polyorder": int(savgol_order) if use_savgol else None,
+            "smoothing": {
+                "method": smoothing or "none",
+                "savgol_window": int(savgol_window) if smoothing == "savgol" else None,
+                "savgol_order": int(savgol_order) if smoothing == "savgol" else None,
+                "gaussian_sigma": (
+                    float(gaussian_sigma) if smoothing == "gaussian" else None
+                ),
             },
         },
         "style": {
@@ -1153,7 +1156,13 @@ def extract_pose_and_draw_trajectory(
     trajectory_metadata_path=None,
     kalman_settings=[True, 1e-1],  # [use_kalman, measurement_variance]
     trajectory_png_path=None,  # NEW: optional PNG output path
-    savgol_settings=[False, 11, 3],  # [use_savgol, window_length, polyorder]
+    smoothing=None,  # None | "savgol" | "gaussian" | "smoothnet"
+    savgol_window=11,  # window length for Savgol filter (must be odd, > savgol_order)
+    savgol_order=3,  # polynomial order for Savgol filter
+    gaussian_sigma=3.0,  # sigma (std-dev in frames) for Gaussian filter
+    smoothnet_window_size=32,  # temporal window for SmoothNet
+    smoothnet_epochs=100,  # self-supervised training epochs
+    smoothnet_lambda_accel=0.1,  # smoothness loss weight (higher = smoother); paper default = 0.1
     track_point_visibility_threshold=DEFAULT_TRACK_POINT_VISIBILITY_THRESHOLD,
     pose_visibility_threshold=VISIBILITY_THRESHOLD,
     pose_presence_threshold=PRESENCE_THRESHOLD,
@@ -1235,10 +1244,8 @@ def extract_pose_and_draw_trajectory(
     use_kalman = kalman_settings[0]  # whether to use Kalman filter
     measurement_variance = kalman_settings[1]  # variance for the Kalman filter
 
-    use_savgol = savgol_settings[0]  # whether to use Savitzky-Golay filter
-
-    savgol_window = savgol_settings[1]  # window length for Savgol filter (must be odd)
-    savgol_order = savgol_settings[2]  # polynomial order for Savgol filter
+    # Smoothing is skipped when landmarks come from cache
+    _apply_smoothing = smoothing is not None and not use_cached_landmarks
 
     # Initialize video capture
     cap = cv2.VideoCapture(video_path)
@@ -1468,7 +1475,44 @@ def extract_pose_and_draw_trajectory(
         smoothed_pose_landmarks = []
 
         num_landmarks = 33
-        if use_savgol:
+        if _apply_smoothing and smoothing == "gaussian":
+            from scipy.ndimage import gaussian_filter1d
+
+            print(
+                f"Applying Gaussian filter to pose skeleton (sigma={gaussian_sigma})..."
+            )
+            smoothed_pose_landmarks = [dict() for _ in all_pose_landmarks]
+
+            for lm_idx in range(num_landmarks):
+                valid_frames = []
+                x_coords = []
+                y_coords = []
+                z_coords = []
+
+                for frame_idx, pose_lm in enumerate(all_pose_landmarks):
+                    if pose_lm is not None:
+                        valid_frames.append(frame_idx)
+                        x_coords.append(pose_lm[lm_idx].x)
+                        y_coords.append(pose_lm[lm_idx].y)
+                        z_coords.append(pose_lm[lm_idx].z)
+
+                if valid_frames:
+                    x_smooth = gaussian_filter1d(x_coords, sigma=gaussian_sigma)
+                    y_smooth = gaussian_filter1d(y_coords, sigma=gaussian_sigma)
+                    z_smooth = gaussian_filter1d(z_coords, sigma=gaussian_sigma)
+
+                    for idx, frame_idx in enumerate(valid_frames):
+                        smoothed_pose_landmarks[frame_idx][lm_idx] = {
+                            "x": float(x_smooth[idx]),
+                            "y": float(y_smooth[idx]),
+                            "z": float(z_smooth[idx]),
+                            "visibility": all_pose_landmarks[frame_idx][
+                                lm_idx
+                            ].visibility,
+                            "presence": all_pose_landmarks[frame_idx][lm_idx].presence,
+                        }
+
+        elif _apply_smoothing and smoothing == "savgol":
             print(
                 f"Applying Savgol filter to pose skeleton (window={savgol_window}, order={savgol_order})..."
             )
@@ -1503,10 +1547,25 @@ def extract_pose_and_draw_trajectory(
                             "presence": all_pose_landmarks[frame_idx][lm_idx].presence,
                         }
 
+        elif _apply_smoothing and smoothing == "smoothnet":
+            print(
+                f"Applying SmoothNet to pose skeleton "
+                f"(window={smoothnet_window_size}, epochs={smoothnet_epochs}, "
+                f"lambda_accel={smoothnet_lambda_accel})..."
+            )
+            from .smoothnet import apply_smoothnet_to_landmarks
+
+            smoothed_pose_landmarks = apply_smoothnet_to_landmarks(
+                all_pose_landmarks,
+                window_size=smoothnet_window_size,
+                epochs=smoothnet_epochs,
+                lambda_accel=smoothnet_lambda_accel,
+            )
+
         rendered_pose_landmarks = _build_render_pose_landmarks(
             all_pose_landmarks,
             smoothed_pose_landmarks,
-            use_savgol,
+            _apply_smoothing,
             num_landmarks,
         )
 
@@ -1518,7 +1577,7 @@ def extract_pose_and_draw_trajectory(
                     effective_fps,
                     width,
                     height,
-                    use_savgol,
+                    smoothing if _apply_smoothing else None,
                 )
             elif cached_trajectory_payload is not None:
                 pose_metadata = cached_trajectory_payload["metadata"].get("pose")
@@ -1533,7 +1592,7 @@ def extract_pose_and_draw_trajectory(
                 effective_fps,
                 use_kalman,
                 measurement_variance,
-                use_savgol,
+                smoothing if _apply_smoothing else None,
                 savgol_window,
                 savgol_order,
                 pose_metadata=pose_metadata,
@@ -1565,7 +1624,7 @@ def extract_pose_and_draw_trajectory(
         if render_video:
             print(
                 "Second pass - rendering video with raw trajectories and "
-                f"{'smoothed' if use_savgol else 'raw'} skeleton..."
+                f"{f'{smoothing}-smoothed' if _apply_smoothing else 'raw'} skeleton..."
             )
             frame_idx = 0
 
