@@ -66,6 +66,19 @@ def main():
         default=None,
         help="Optional path to the pose world landmarks JSON output.",
     )
+    parser.add_argument(
+        "--pose_backend",
+        type=str,
+        default="mediapipe",
+        choices=["mediapipe", "vitpose"],
+        help="Pose estimation backend to use (default: mediapipe).",
+    )
+    parser.add_argument(
+        "--trajectory_thickness",
+        type=int,
+        default=None,
+        help="Thickness in pixels for trajectory lines and velocity arrows (default: 5).",
+    )
     args = parser.parse_args()
     if not args.video_path or args.video_path == "":
         print(
@@ -99,6 +112,7 @@ def main():
         colored("World landmarks JSON path:", "blue"),
         args.world_landmarks_json_path,
     )
+    print(colored("Pose backend:", "blue"), args.pose_backend)
 
     cruxes = Cruxes()
     cruxes.body_trajectory(
@@ -120,13 +134,13 @@ def main():
         pose_color=(255, 255, 255),
         show_trajectory=True,
         show_gauges=False,
-        trajectory_history_seconds=0.75,
-        use_cached_landmarks=True,
+        trajectory_history_seconds=0.5,
+        use_cached_landmarks=False,
         # use_cached_trajectory_metadata=True,
         export_landmarks=True,
         # export_metadata=True,
-        overlay_mask=True,
-        hide_original_video=True,
+        overlay_mask=False,
+        hide_original_video=False,
         kalman_settings=[  # Kalman filter settings: [use_kalman : bool, kalman_gain : float]
             True,  # Set this to false if you don't want to apply Kalman filter
             0.5e0,  # >=1e0 for higher noise, <=1e-1 for lower noise
@@ -143,6 +157,8 @@ def main():
         pose_presence_threshold=args.pose_presence_threshold,
         export_world_landmarks=args.export_world_landmarks,
         world_landmarks_json_path=args.world_landmarks_json_path,
+        pose_backend=args.pose_backend,
+        trajectory_thickness=args.trajectory_thickness,
     )
 
 

@@ -1157,9 +1157,19 @@ def extract_pose_and_draw_trajectory(
     track_point_visibility_threshold=DEFAULT_TRACK_POINT_VISIBILITY_THRESHOLD,
     pose_visibility_threshold=VISIBILITY_THRESHOLD,
     pose_presence_threshold=PRESENCE_THRESHOLD,
+    pose_backend="mediapipe",  # "mediapipe" or "vitpose"
+    vitpose_device=None,  # device for ViTPose ("mps", "cpu", or None for auto)
+    vitpose_det_frequency=3,  # how often YOLOX re-runs detection (every N frames)
+    trajectory_thickness=None,  # thickness for trajectory lines and velocity arrows; defaults to TRAJECTORY_THICKNESS
 ):
     # Suppress MediaPipe warnings
     os.environ["GLOG_minloglevel"] = "2"
+
+    _trajectory_thickness = (
+        TRAJECTORY_THICKNESS
+        if trajectory_thickness is None
+        else int(trajectory_thickness)
+    )
 
     if overlay_trajectory is not None:
         overlay_mask = overlay_trajectory
@@ -1385,7 +1395,11 @@ def extract_pose_and_draw_trajectory(
             or export_world_landmarks
             or export_metadata
         ):
-            pose_detector = PoseDetector()
+            pose_detector = PoseDetector(
+                backend=pose_backend,
+                vitpose_device=vitpose_device,
+                vitpose_det_frequency=vitpose_det_frequency,
+            )
         with tqdm(total=total_frames, desc=first_pass_desc, unit="frame") as pbar:
             while cap.isOpened():
                 ret, frame = cap.read()
@@ -1618,14 +1632,14 @@ def extract_pose_and_draw_trajectory(
                                     overlay_canvas,
                                     traj,
                                     trajectory_segment_colors,
-                                    thickness=TRAJECTORY_THICKNESS,
+                                    thickness=_trajectory_thickness,
                                 )
                             else:
                                 draw_colored_trajectory(
                                     frame,
                                     traj,
                                     trajectory_segment_colors,
-                                    thickness=TRAJECTORY_THICKNESS,
+                                    thickness=_trajectory_thickness,
                                 )
 
                         # Draw velocity arrows and optional telemetry.
@@ -1675,7 +1689,7 @@ def extract_pose_and_draw_trajectory(
                             curr_point,
                             color,
                             scale=VELOCITY_ARROW_LENGTH,
-                            thickness=VELOCITY_ARROW_THICKNESS,
+                            thickness=_trajectory_thickness,
                         )
 
                     if show_gauges:

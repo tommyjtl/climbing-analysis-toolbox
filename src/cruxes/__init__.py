@@ -275,6 +275,10 @@ class Cruxes:
         track_point_visibility_threshold=0.6,
         pose_visibility_threshold=0.4,
         pose_presence_threshold=0.4,
+        pose_backend="mediapipe",  # "mediapipe" or "vitpose"
+        vitpose_device=None,  # device for ViTPose ("mps", "cpu", or None for auto)
+        vitpose_det_frequency=3,  # how often YOLOX re-runs detection (every N frames)
+        trajectory_thickness=None,  # thickness for trajectory lines and velocity arrows
     ):
         if overlay_trajectory is not None:
             overlay_mask = overlay_trajectory
@@ -322,6 +326,10 @@ class Cruxes:
             track_point_visibility_threshold=track_point_visibility_threshold,
             pose_visibility_threshold=pose_visibility_threshold,
             pose_presence_threshold=pose_presence_threshold,
+            pose_backend=pose_backend,
+            vitpose_device=vitpose_device,
+            vitpose_det_frequency=vitpose_det_frequency,
+            trajectory_thickness=trajectory_thickness,
         )
 
     def compare_trajectories(

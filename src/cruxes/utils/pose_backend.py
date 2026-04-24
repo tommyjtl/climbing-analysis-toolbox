@@ -142,7 +142,9 @@ class PoseResult:
     world_pose_landmarks: Optional[list[WorldPoseLandmark]] = None
 
 
-class PoseDetector:
+class _MediaPipeDetector:
+    """Internal MediaPipe-based pose detector."""
+
     def __init__(self):
         self._backend = None
         self._detector = None
@@ -217,6 +219,212 @@ class PoseDetector:
     def close(self):
         if self._detector is not None:
             self._detector.close()
+
+
+def _auto_detect_vitpose_device():
+    """Return 'mps' on Apple Silicon when CoreML is available, else 'cpu'."""
+    import platform
+
+    if platform.system() == "Darwin" and platform.machine() == "arm64":
+        try:
+            import onnxruntime
+
+            if "CoreMLExecutionProvider" in onnxruntime.get_available_providers():
+                return "mps"
+        except ImportError:
+            pass
+    return "cpu"
+
+
+class ViTPoseDetector:
+    """ViTPose-based pose detector via rtmlib.
+
+    Keypoints are returned in COCO-17 format and adapted into a 33-slot
+    MediaPipe-compatible ``NormalizedPoseLandmark`` list so that all
+    downstream code continues to work without modification.
+
+    Unused MediaPipe slots receive ``visibility=0.0`` so they are skipped
+    during rendering and trajectory extraction.
+    """
+
+    # COCO-17 keypoint index -> MediaPipe-33 index
+    _COCO_TO_MP: dict = {
+        0: 0,  # nose
+        1: 2,  # left_eye
+        2: 5,  # right_eye
+        3: 7,  # left_ear
+        4: 8,  # right_ear
+        5: 11,  # left_shoulder
+        6: 12,  # right_shoulder
+        7: 13,  # left_elbow
+        8: 14,  # right_elbow
+        9: 15,  # left_wrist
+        10: 16,  # right_wrist
+        11: 23,  # left_hip
+        12: 24,  # right_hip
+        13: 25,  # left_knee
+        14: 26,  # right_knee
+        15: 27,  # left_ankle
+        16: 28,  # right_ankle
+    }
+    _NUM_MP_LANDMARKS = 33
+
+    _DET_URL = (
+        "https://download.openmmlab.com/mmpose/v1/projects/rtmposev1/onnx_sdk/"
+        "yolox_x_8xb8-300e_humanart-a39d44ed.zip"
+    )
+    _POSE_URL = (
+        "https://huggingface.co/JunkyByte/easy_ViTPose/resolve/main/onnx/coco/"
+        "vitpose-b-coco.onnx"
+    )
+
+    def __init__(self, device=None, backend="onnxruntime", det_frequency=3):
+        if device is None:
+            device = _auto_detect_vitpose_device()
+
+        from functools import partial
+        from rtmlib import PoseTracker, Custom
+
+        vitpose_cls = partial(
+            Custom,
+            det_class="YOLOX",
+            det=self._DET_URL,
+            det_input_size=(640, 640),
+            pose_class="ViTPose",
+            pose=self._POSE_URL,
+            pose_input_size=(192, 256),
+        )
+        self._tracker = PoseTracker(
+            vitpose_cls,
+            det_frequency=det_frequency,
+            backend=backend,
+            device=device,
+            to_openpose=False,
+        )
+        # Pixel-space centroid of the last successfully tracked person.
+        # Used to keep tracking the same individual across frames.
+        self._last_center = None  # (x_px, y_px) or None
+
+    def _person_center(self, kpts, confs):
+        """Weighted centroid (pixel coords) of a single person's keypoints."""
+        cx, cy, total = 0.0, 0.0, 0.0
+        for i in range(len(kpts)):
+            c = float(confs[i])
+            if c > 0.1:
+                cx += float(kpts[i][0]) * c
+                cy += float(kpts[i][1]) * c
+                total += c
+        if total < 0.1:
+            return None
+        return (cx / total, cy / total)
+
+    def _select_person(self, keypoints, scores):
+        """Return the index of the person to track this frame.
+
+        On the first detection: pick the person with the highest mean confidence
+        (most visible / most complete detection — likely the climber on the wall).
+        On every subsequent frame: pick whoever is spatially closest to the last
+        known centroid, so the tracker sticks to the same individual even if
+        another person walks into the scene.
+        """
+        if len(keypoints) == 1:
+            return 0
+
+        centers = [
+            self._person_center(keypoints[i], scores[i]) for i in range(len(keypoints))
+        ]
+
+        if self._last_center is None:
+            # First detection — pick highest average confidence
+            best, best_conf = 0, -1.0
+            for i in range(len(keypoints)):
+                avg = float(scores[i].mean())
+                if avg > best_conf:
+                    best_conf = avg
+                    best = i
+            return best
+
+        # Subsequent frames — pick person closest to last known position
+        lx, ly = self._last_center
+        best, best_dist = 0, float("inf")
+        for i, center in enumerate(centers):
+            if center is None:
+                continue
+            dist = (center[0] - lx) ** 2 + (center[1] - ly) ** 2
+            if dist < best_dist:
+                best_dist = dist
+                best = i
+        return best
+
+    def process(self, frame_bgr, timestamp_ms=None):
+        keypoints, scores = self._tracker(frame_bgr)
+        # keypoints: (N, 17, 2) pixel coords; scores: (N, 17) confidence
+        if keypoints is None or len(keypoints) == 0:
+            return PoseResult(pose_landmarks=None, world_pose_landmarks=None)
+
+        h, w = frame_bgr.shape[:2]
+
+        person_idx = self._select_person(keypoints, scores)
+        kpts = keypoints[person_idx]
+        confs = scores[person_idx]
+
+        # Update sticky centroid for next frame
+        center = self._person_center(kpts, confs)
+        if center is not None:
+            self._last_center = center
+
+        # Build 33-slot list; unused slots get visibility=0.0
+        landmarks = [
+            NormalizedPoseLandmark(x=0.0, y=0.0, z=0.0, visibility=0.0, presence=0.0)
+            for _ in range(self._NUM_MP_LANDMARKS)
+        ]
+        for coco_idx, mp_idx in self._COCO_TO_MP.items():
+            x_px = float(kpts[coco_idx][0])
+            y_px = float(kpts[coco_idx][1])
+            conf = float(confs[coco_idx])
+            landmarks[mp_idx] = NormalizedPoseLandmark(
+                x=x_px / w,
+                y=y_px / h,
+                z=0.0,
+                visibility=conf,
+                presence=conf,
+            )
+
+        return PoseResult(pose_landmarks=landmarks, world_pose_landmarks=None)
+
+    def close(self):
+        pass
+
+
+class PoseDetector:
+    """Pose detector that supports multiple backends.
+
+    Args:
+        backend: ``"mediapipe"`` (default) or ``"vitpose"``.
+        vitpose_device: Device for ViTPose inference (``"mps"``, ``"cpu"``).
+            Defaults to auto-detection (MPS on Apple Silicon when available).
+        vitpose_det_frequency: How often YOLOX re-runs detection (every N frames).
+    """
+
+    def __init__(
+        self,
+        backend="mediapipe",
+        vitpose_device=None,
+        vitpose_det_frequency=3,
+    ):
+        if backend == "vitpose":
+            self._impl = ViTPoseDetector(
+                device=vitpose_device,
+                det_frequency=vitpose_det_frequency,
+            )
+        else:
+            self._impl = _MediaPipeDetector()
+
+    def process(self, frame_bgr, timestamp_ms=None):
+        return self._impl.process(frame_bgr, timestamp_ms=timestamp_ms)
+
+    def close(self):
+        self._impl.close()
 
 
 def resolve_pose_model_path():
