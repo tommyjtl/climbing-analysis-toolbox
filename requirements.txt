@@ -7,4 +7,4 @@ torch==2.10.0
 torchaudio==2.10.0
 torchvision==0.25.0
 image-matching-models==1.1.0
-rtmlib
+rtmlib==0.0.15

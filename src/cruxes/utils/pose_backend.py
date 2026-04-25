@@ -19,8 +19,8 @@ DEFAULT_POSE_MODEL_URL = (
 DEFAULT_POSE_MODEL_PATH = (
     Path.home() / ".cache" / "cruxes" / "mediapipe" / "pose_landmarker_full.task"
 )
-VISIBILITY_THRESHOLD = 0.3
-PRESENCE_THRESHOLD = 0.3
+VISIBILITY_THRESHOLD = 0.2
+PRESENCE_THRESHOLD = 0.2
 
 
 class PoseLandmark(IntEnum):

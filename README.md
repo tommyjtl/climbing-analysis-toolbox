@@ -218,8 +218,6 @@ For CLI usage, `--show_trajectory` is required in the normal overlay mode. If yo
 
 The dedicated pose world landmarks file is intended for 3D playback workflows such as the WebGPU sample player in the `webgpu-samples` repository. It contains the raw 33-landmark MediaPipe world coordinates in meters, rooted at the hip midpoint, plus a rough cumulative `x/y` root-translation estimate derived from hip motion in the video. The WebGPU player can toggle that estimate on or off.
 
-`--savgol_settings` is currently available in the Python API example below, not in the CLI.
-
 #### Pose backend and landmark count
 
 The `--pose_backend` argument selects which pose estimation model runs under the hood:

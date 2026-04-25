@@ -1170,6 +1170,7 @@ def extract_pose_and_draw_trajectory(
     vitpose_device=None,  # device for ViTPose ("mps", "cpu", or None for auto)
     vitpose_det_frequency=3,  # how often YOLOX re-runs detection (every N frames)
     trajectory_thickness=None,  # thickness for trajectory lines and velocity arrows; defaults to TRAJECTORY_THICKNESS
+    velocity_arrow_length=None,  # scale for velocity arrow length; defaults to VELOCITY_ARROW_LENGTH
 ):
     # Suppress MediaPipe warnings
     os.environ["GLOG_minloglevel"] = "2"
@@ -1178,6 +1179,11 @@ def extract_pose_and_draw_trajectory(
         TRAJECTORY_THICKNESS
         if trajectory_thickness is None
         else int(trajectory_thickness)
+    )
+    _velocity_arrow_length = (
+        VELOCITY_ARROW_LENGTH
+        if velocity_arrow_length is None
+        else float(velocity_arrow_length)
     )
 
     if overlay_trajectory is not None:
@@ -1244,8 +1250,7 @@ def extract_pose_and_draw_trajectory(
     use_kalman = kalman_settings[0]  # whether to use Kalman filter
     measurement_variance = kalman_settings[1]  # variance for the Kalman filter
 
-    # Smoothing is skipped when landmarks come from cache
-    _apply_smoothing = smoothing is not None and not use_cached_landmarks
+    _apply_smoothing = smoothing is not None
 
     # Initialize video capture
     cap = cv2.VideoCapture(video_path)
@@ -1747,7 +1752,7 @@ def extract_pose_and_draw_trajectory(
                             prev_point,
                             curr_point,
                             color,
-                            scale=VELOCITY_ARROW_LENGTH,
+                            scale=_velocity_arrow_length,
                             thickness=_trajectory_thickness,
                         )
 

@@ -285,6 +285,7 @@ class Cruxes:
         vitpose_device=None,  # device for ViTPose ("mps", "cpu", or None for auto)
         vitpose_det_frequency=3,  # how often YOLOX re-runs detection (every N frames)
         trajectory_thickness=None,  # thickness for trajectory lines and velocity arrows
+        velocity_arrow_length=None,  # scale for velocity arrow length
     ):
         if overlay_trajectory is not None:
             overlay_mask = overlay_trajectory
@@ -342,6 +343,7 @@ class Cruxes:
             vitpose_device=vitpose_device,
             vitpose_det_frequency=vitpose_det_frequency,
             trajectory_thickness=trajectory_thickness,
+            velocity_arrow_length=velocity_arrow_length,
         )
 
     def compare_trajectories(

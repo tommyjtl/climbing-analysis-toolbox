@@ -122,6 +122,12 @@ def main():
         default=None,
         help="Thickness in pixels for trajectory lines and velocity arrows (default: 5).",
     )
+    parser.add_argument(
+        "--velocity_arrow_length",
+        type=float,
+        default=None,
+        help="Scale factor for velocity arrow length (default: 40).",
+    )
     args = parser.parse_args()
     if not args.video_path or args.video_path == "":
         print(
@@ -165,7 +171,7 @@ def main():
         # tracking relevant
         track_point=[
             "hip_mid",
-            "upper_body_center",
+            # "upper_body_center",
             # "head",
             "left_hand",
             "right_hand",
@@ -176,10 +182,10 @@ def main():
         #
         draw_pose=True,
         pose_color=(255, 255, 255),
-        show_trajectory=False,
+        show_trajectory=True,
         show_gauges=False,
-        trajectory_history_seconds=0.5,
-        use_cached_landmarks=False,
+        # trajectory_history_seconds=1.5,
+        use_cached_landmarks=True,
         # use_cached_trajectory_metadata=True,
         export_landmarks=True,
         # export_metadata=True,
@@ -203,6 +209,7 @@ def main():
         world_landmarks_json_path=args.world_landmarks_json_path,
         pose_backend=args.pose_backend,
         trajectory_thickness=args.trajectory_thickness,
+        velocity_arrow_length=args.velocity_arrow_length,
     )
 
 
