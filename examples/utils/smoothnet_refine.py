@@ -30,7 +30,7 @@ Usage:
         --output    path/to/2_landmarks_refined.json \\
         --window_size 32 \\
         --epochs 120 \\
-        --lambda_accel 1.0
+        --lambda_accel 0.1
 
 Arguments
 ---------
@@ -40,7 +40,7 @@ Arguments
                   Reduce for very short clips; increase for long, smooth moves.
 --epochs          Training epochs (default: 100). ~30 s on MPS / CPU.
 --lr              Learning rate (default: 1e-3).
---lambda_accel    Weight for the acceleration smoothness loss (default: 1.0).
+--lambda_accel    Weight for the acceleration smoothness loss (default: 0.1).
                   Higher = smoother output, but may blur fast dynamic moves.
 --device          'cpu', 'cuda', or 'mps'. Auto-detected if omitted.
 """

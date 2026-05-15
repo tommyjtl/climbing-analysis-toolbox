@@ -191,15 +191,13 @@ def test_body_trajectory_smoothing_methods(tmp_path):
 @pytest.mark.integration
 def test_body_trajectory_invalid_smoothing_raises():
     """Passing an unsupported smoothing method raises ValueError before any I/O."""
-    _require_test_video()
-
     from cruxes import Cruxes
 
-    assert _TEST_VIDEO_PATH is not None
     c = Cruxes()
+    # Validation fires before cv2.VideoCapture is opened, so no real video is needed.
     with pytest.raises(ValueError, match="Unsupported smoothing method"):
         c.body_trajectory(
-            _TEST_VIDEO_PATH,
+            "dummy_path_not_opened.mp4",
             smoothing="not_a_real_method",
             pose_backend="mediapipe",
         )

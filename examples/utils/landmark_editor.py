@@ -6,7 +6,7 @@ body_trajectory pipeline.
 
 Workflow:
   1. Run body_trajectory with --export_landmarks to produce a landmarks JSON.
-  2. Run this editor: python landmark_editor.py --video path/to/video.mp4 --landmarks path/to/landmarks.json
+  2. Run this editor: python examples/utils/landmark_editor.py --video_path path/to/video.mp4 --landmarks path/to/landmarks.json
   3. Correct the landmarks frame by frame, then press S to save.
   4. Re-run body_trajectory with --use_cached_landmarks to render with corrections.
 

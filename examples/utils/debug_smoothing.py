@@ -12,7 +12,7 @@ python examples/utils/debug_smoothing.py \
     --landmarks /path/to/2_landmarks.json \
     --smoothed  /path/to/2_landmarks_smoothed.json
 
-# Also render an overlay video (raw=red, smoothed=green) for N frames:
+# Also render an overlay video (raw=blue, smoothed=green) for N frames:
 python examples/utils/debug_smoothing.py \
     --landmarks /path/to/2_landmarks.json \
     --video     /path/to/2.mov \
@@ -27,6 +27,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+import torch
 import matplotlib
 
 matplotlib.use("Agg")  # headless-safe
@@ -207,7 +208,7 @@ def print_stats(raw_coords, sm_coords, valid, joints):
 
 
 def render_overlay_video(video_path, raw_coords, sm_coords, valid, out_path, n_frames):
-    """Render a video with raw skeleton (red) and smoothed skeleton (green) overlaid."""
+    """Render a video with raw skeleton (blue) and smoothed skeleton (green) overlaid."""
     cap = cv2.VideoCapture(video_path)
     fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
     w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -320,8 +321,6 @@ def main():
     args = parser.parse_args()
 
     device = torch.device(args.device) if args.device else auto_detect_device()
-    # lazy torch import only needed for actual training
-    import torch
 
     stem = Path(args.landmarks).stem
     parent = Path(args.landmarks).parent

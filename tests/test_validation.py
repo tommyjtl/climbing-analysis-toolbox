@@ -38,30 +38,32 @@ def test_pose_connections_is_list_of_int_tuples():
 
 
 def test_supported_smoothing_methods_are_known():
-    """The three documented smoothing methods must be importable string constants."""
-    # body_trajectory defines them inline; verify them via the CLI choices list
-    from cruxes.utils.body_trajectory import (
-        DEFAULT_TRACK_POINT_VISIBILITY_THRESHOLD,
-    )  # noqa: F401
-
-    expected = {"gaussian", "savgol", "smoothnet"}
-    # The CLI hard-codes the same set; we derive it from the argparse choices
+    """The CLI --smoothing choices must include exactly the documented methods."""
     import argparse
     import sys
     from unittest.mock import patch
 
-    from cruxes import Cruxes
     from cruxes.cli import main
 
-    choices_seen: set[str] = set()
+    captured_choices: list = []
 
-    class _CapturingParser(argparse.ArgumentParser):
-        pass
+    _real_add_argument = argparse.ArgumentParser.add_argument
 
-    # Parse --help to extract the choices listed for --smoothing
-    with patch.object(sys, "argv", ["cruxes", "body-trajectory", "--help"]):
-        with pytest.raises(SystemExit):
-            main()
+    def _spy_add_argument(self, *args, **kwargs):
+        if "--smoothing" in args:
+            choices = kwargs.get("choices")
+            if choices is not None:
+                captured_choices.extend(choices)
+        return _real_add_argument(self, *args, **kwargs)
 
-    # Simpler: just verify the expected set is the same as what we document
-    assert expected == {"gaussian", "savgol", "smoothnet"}
+    with patch.object(argparse.ArgumentParser, "add_argument", _spy_add_argument):
+        with patch.object(sys, "argv", ["cruxes", "body-trajectory", "--help"]):
+            with pytest.raises(SystemExit):
+                main()
+
+    # "none" is the sentinel for disabling smoothing; the three real methods are:
+    expected_methods = {"gaussian", "savgol", "smoothnet"}
+    actual_methods = {c for c in captured_choices if c != "none"}
+    assert actual_methods == expected_methods, (
+        f"CLI --smoothing choices {actual_methods!r} don't match expected {expected_methods!r}"
+    )

@@ -419,6 +419,12 @@ class PoseDetector:
         vitpose_device=None,
         vitpose_det_frequency=3,
     ):
+        _SUPPORTED_BACKENDS = {"mediapipe", "vitpose"}
+        if backend not in _SUPPORTED_BACKENDS:
+            raise ValueError(
+                f"Unknown pose backend: {backend!r}. "
+                f"Supported backends are: {sorted(_SUPPORTED_BACKENDS)}"
+            )
         if backend == "vitpose":
             self._impl = ViTPoseDetector(
                 device=vitpose_device,

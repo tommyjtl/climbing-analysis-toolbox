@@ -302,10 +302,15 @@ def _serialize_pose_landmarks_for_metadata(landmarks, width, height):
 
 
 def _build_pose_metadata(
-    rendered_pose_landmarks, effective_fps, width, height, smoothing
+    rendered_pose_landmarks, effective_fps, width, height, smoothing, pose_backend="mediapipe"
 ):
+    _BACKEND_LANDMARK_MODELS = {
+        "mediapipe": "mediapipe_pose_33",
+        "vitpose": "vitpose_coco17_mapped_to_mp33",
+    }
+    landmark_model = _BACKEND_LANDMARK_MODELS.get(pose_backend, "mediapipe_pose_33")
     return {
-        "landmark_model": "mediapipe_pose_33",
+        "landmark_model": landmark_model,
         "landmark_count": len(PoseLandmark),
         "landmark_names": [landmark.name.lower() for landmark in PoseLandmark],
         "render_landmarks_source": f"{smoothing}_smoothed" if smoothing else "raw",
@@ -1590,6 +1595,7 @@ def extract_pose_and_draw_trajectory(
                     width,
                     height,
                     smoothing if _apply_smoothing else None,
+                    pose_backend=pose_backend,
                 )
             elif cached_trajectory_payload is not None:
                 pose_metadata = cached_trajectory_payload["metadata"].get("pose")

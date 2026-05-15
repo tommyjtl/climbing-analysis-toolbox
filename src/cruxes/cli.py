@@ -247,8 +247,8 @@ def main():
         "--smoothing",
         type=str,
         default="gaussian",
-        choices=["gaussian", "savgol", "smoothnet"],
-        help="Smoothing method to apply to the pose skeleton (default: gaussian).",
+        choices=["gaussian", "savgol", "smoothnet", "none"],
+        help="Smoothing method to apply to the pose skeleton (default: gaussian). Use 'none' to disable.",
     )
 
     args = parser.parse_args()
@@ -306,7 +306,7 @@ def main():
             pose_visibility_threshold=args.pose_visibility_threshold,
             pose_presence_threshold=args.pose_presence_threshold,
             pose_backend=args.pose_backend,
-            smoothing=args.smoothing,
+            smoothing=None if args.smoothing == "none" else args.smoothing,
         )
 
 
