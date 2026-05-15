@@ -110,6 +110,7 @@ def test_body_trajectory_default_show_trajectory():
 # File-existence guards – no ML inference, no heavy deps needed
 # ---------------------------------------------------------------------------
 
+
 def test_warp_image_missing_ref_returns_false(tmp_path):
     """warp_image() returns False and prints a warning when ref image is missing."""
     from cruxes import Cruxes
