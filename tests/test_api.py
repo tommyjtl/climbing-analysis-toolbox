@@ -1,4 +1,5 @@
 """Tests for the Cruxes Python class interface."""
+
 import sys
 import pytest
 from unittest.mock import MagicMock
@@ -103,3 +104,58 @@ def test_body_trajectory_default_show_trajectory():
 
     sig = inspect.signature(Cruxes.body_trajectory)
     assert sig.parameters["show_trajectory"].default is True
+
+
+# ---------------------------------------------------------------------------
+# File-existence guards – no ML inference, no heavy deps needed
+# ---------------------------------------------------------------------------
+
+def test_warp_image_missing_ref_returns_false(tmp_path):
+    """warp_image() returns False and prints a warning when ref image is missing."""
+    from cruxes import Cruxes
+
+    c = Cruxes()
+    result = c.warp_image(
+        ref_img=str(tmp_path / "nonexistent_ref.png"),
+        src_img_path=str(tmp_path / "nonexistent_src.png"),
+    )
+    assert result is False
+
+
+def test_warp_image_missing_src_returns_false(tmp_path):
+    """warp_image() returns False when only the source image is missing."""
+    import numpy as np
+    import cv2 as cv2_mod  # cv2 may be real or a mock – both support this test
+
+    from cruxes import Cruxes
+
+    # Write a tiny real-looking PNG for the reference
+    ref_path = tmp_path / "ref.png"
+    try:
+        real_write = cv2_mod.imwrite(str(ref_path), np.zeros((10, 10, 3), dtype=np.uint8))
+        if not real_write:
+            raise RuntimeError("cv2.imwrite failed (may be a mock)")
+    except Exception:
+        # cv2 is mocked – just create an empty file so os.path.exists passes
+        ref_path.write_bytes(b"\x00")
+
+    c = Cruxes()
+    result = c.warp_image(
+        ref_img=str(ref_path),
+        src_img_path=str(tmp_path / "nonexistent_src.png"),
+    )
+    assert result is False
+
+
+def test_warp_video_missing_ref_returns_early(tmp_path, capsys):
+    """warp_video() prints a warning and returns early when ref image is missing."""
+    from cruxes import Cruxes
+
+    c = Cruxes()
+    # Should not raise – just warn and return
+    c.warp_video(
+        ref_img=str(tmp_path / "nonexistent_ref.png"),
+        src_video_path=str(tmp_path / "nonexistent.mp4"),
+    )
+    captured = capsys.readouterr()
+    assert "Warning" in captured.out

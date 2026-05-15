@@ -47,6 +47,9 @@ cruxes = "cruxes.cli:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+  "integration: tests that require the full ML stack and/or real video files (deselect with '-m not integration')",
+]
 
 [tool.mypy]
 python_version = "3.11"

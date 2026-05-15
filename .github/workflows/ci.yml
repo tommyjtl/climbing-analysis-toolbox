@@ -53,4 +53,4 @@ jobs:
           pip install termcolor numpy scipy tqdm
 
       - name: Run tests
-        run: pytest tests/ -v --tb=short --cov=src/cruxes --cov-report=term-missing
+        run: pytest tests/ -v --tb=short --cov=src/cruxes --cov-report=term-missing -m "not integration"

@@ -1,4 +1,5 @@
 """Tests for module-level constants and input-validation logic."""
+
 import pytest
 
 
@@ -39,7 +40,9 @@ def test_pose_connections_is_list_of_int_tuples():
 def test_supported_smoothing_methods_are_known():
     """The three documented smoothing methods must be importable string constants."""
     # body_trajectory defines them inline; verify them via the CLI choices list
-    from cruxes.utils.body_trajectory import DEFAULT_TRACK_POINT_VISIBILITY_THRESHOLD  # noqa: F401
+    from cruxes.utils.body_trajectory import (
+        DEFAULT_TRACK_POINT_VISIBILITY_THRESHOLD,
+    )  # noqa: F401
 
     expected = {"gaussian", "savgol", "smoothnet"}
     # The CLI hard-codes the same set; we derive it from the argparse choices
