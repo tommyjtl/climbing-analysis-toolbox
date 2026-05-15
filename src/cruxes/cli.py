@@ -19,9 +19,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Cruxes: Climbing Analysis Toolbox CLI"
     )
-    parser.add_argument(
-        "--version", action="version", version=f"%(prog)s {_version}"
-    )
+    parser.add_argument("--version", action="version", version=f"%(prog)s {_version}")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     """
