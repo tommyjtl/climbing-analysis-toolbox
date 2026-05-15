@@ -76,8 +76,11 @@ SPEED_COLOR_FAST = (29, 96, 231)
 
 TRAJECTORY_THICKNESS = 5
 VELOCITY_ARROW_LENGTH = 40
+# VELOCITY_ARROW_THICKNESS is kept for backwards-compatibility; arrow thickness
+# now defaults to TRAJECTORY_THICKNESS and can be overridden via the
+# trajectory_thickness argument (which affects both lines and arrows together).
 VELOCITY_ARROW_THICKNESS = 5
-TRAJECTORY_METADATA_SCHEMA_VERSION = "1.0"
+TRAJECTORY_METADATA_SCHEMA_VERSION = "1.1"  # processing.savgol -> processing.smoothing
 WORLD_LANDMARKS_SCHEMA_VERSION = "1.0"
 DEFAULT_VELOCITY_COLOR_PRESET = "ice_blue_candle"
 DEFAULT_TRACK_POINT_VISIBILITY_THRESHOLD = 0.6

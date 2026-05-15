@@ -251,7 +251,7 @@ cruxes body-trajectory \
 --json_only \
 --kalman_settings 1e0 \
 --smoothing gaussian \
-# Other smoothing options: savgol, smoothnet, or omit for no smoothing (gaussian is default)
+# Other smoothing options: savgol, smoothnet. Use --smoothing none to disable (gaussian is default).
 --track_point_visibility_threshold 0.6 \
 --pose_visibility_threshold 0.4 \
 --pose_presence_threshold 0.4

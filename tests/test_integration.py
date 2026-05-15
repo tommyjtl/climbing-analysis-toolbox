@@ -35,9 +35,13 @@ import pytest
 
 # ── Skip guard ──────────────────────────────────────────────────────────────
 
-# conftest.py mocks cv2 when it is not installed.  A MagicMock is never the
-# real cv2 module, so this check reliably detects the lightweight CI env.
-_HEAVY_DEPS_AVAILABLE = not isinstance(sys.modules.get("cv2"), MagicMock)
+# conftest.py mocks cv2/mediapipe/torch when they are not installed.  A
+# MagicMock is never the real module, so checking all three avoids a false
+# positive when cv2 is present but mediapipe or torch are missing.
+_HEAVY_DEPS_AVAILABLE = not any(
+    isinstance(sys.modules.get(mod), MagicMock)
+    for mod in ("cv2", "mediapipe", "torch")
+)
 
 pytestmark = pytest.mark.skipif(
     not _HEAVY_DEPS_AVAILABLE,

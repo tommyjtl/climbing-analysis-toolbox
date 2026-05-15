@@ -6,8 +6,10 @@ Refining Human Poses in Videos", ECCV 2022. Apache-2.0 license.
 https://github.com/cure-lab/SmoothNet
 
 This module is imported lazily inside body_trajectory.py (only when
-smoothing="smoothnet" is requested), so PyTorch is not a hard dependency
-for users who use savgol or no smoothing.
+smoothing="smoothnet" is requested.  Note: PyTorch is a required package
+dependency (see pyproject.toml), so it will always be installed; the lazy
+import here is purely for import-time performance on paths that don't use
+SmoothNet.
 """
 
 import numpy as np
