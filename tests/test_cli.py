@@ -47,6 +47,17 @@ def test_cli_help_exits_zero():
     assert exc.value.code == 0
 
 
+def test_cli_version_exits_zero(capsys):
+    from cruxes.cli import main
+
+    with patch.object(sys, "argv", ["cruxes", "--version"]):
+        with pytest.raises(SystemExit) as exc:
+            main()
+    assert exc.value.code == 0
+    output = capsys.readouterr()
+    assert "cruxes" in (output.out + output.err)
+
+
 def test_cli_body_trajectory_help_exits_zero():
     from cruxes.cli import main
 

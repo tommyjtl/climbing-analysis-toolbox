@@ -15,7 +15,10 @@ BLEND_MODES = [
 
 
 def main():
-    _version = importlib.metadata.version("cruxes")
+    try:
+        _version = importlib.metadata.version("cruxes")
+    except importlib.metadata.PackageNotFoundError:
+        _version = "unknown"
     parser = argparse.ArgumentParser(
         description="Cruxes: Climbing Analysis Toolbox CLI"
     )
