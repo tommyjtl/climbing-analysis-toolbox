@@ -66,6 +66,74 @@ def main():
         default=None,
         help="Optional path to the pose world landmarks JSON output.",
     )
+    parser.add_argument(
+        "--pose_backend",
+        type=str,
+        default="mediapipe",
+        choices=["mediapipe", "vitpose"],
+        help="Pose estimation backend to use (default: mediapipe).",
+    )
+    parser.add_argument(
+        "--smoothing",
+        type=str,
+        default=None,
+        choices=["savgol", "gaussian", "smoothnet"],
+        help="Temporal smoothing method applied after pose estimation (default: none).",
+    )
+    parser.add_argument(
+        "--savgol_window",
+        type=int,
+        default=11,
+        help="Savgol filter window length (must be odd, default: 11).",
+    )
+    parser.add_argument(
+        "--savgol_order",
+        type=int,
+        default=3,
+        help="Savgol filter polynomial order (default: 3).",
+    )
+    parser.add_argument(
+        "--gaussian_sigma",
+        type=float,
+        default=3.0,
+        help="Standard deviation (in frames) for Gaussian smoothing filter (default: 3.0).",
+    )
+    parser.add_argument(
+        "--smoothnet_window_size",
+        type=int,
+        default=32,
+        help="SmoothNet temporal window size in frames (default: 32).",
+    )
+    parser.add_argument(
+        "--smoothnet_epochs",
+        type=int,
+        default=100,
+        help="SmoothNet self-supervised training epochs (default: 100).",
+    )
+    parser.add_argument(
+        "--smoothnet_lambda_accel",
+        type=float,
+        default=0.1,
+        help="SmoothNet acceleration loss weight — higher = smoother (default: 0.1).",
+    )
+    parser.add_argument(
+        "--trajectory_thickness",
+        type=int,
+        default=None,
+        help="Thickness in pixels for trajectory lines and velocity arrows (default: 5).",
+    )
+    parser.add_argument(
+        "--velocity_arrow_length",
+        type=float,
+        default=None,
+        help="Scale factor for velocity arrow length (default: 40).",
+    )
+    parser.add_argument(
+        "--use_cached_landmarks",
+        action="store_true",
+        default=False,
+        help="Load landmarks from a previously saved JSON cache instead of re-running pose detection. Falls back to re-detection if no valid cache exists.",
+    )
     args = parser.parse_args()
     if not args.video_path or args.video_path == "":
         print(
@@ -99,6 +167,9 @@ def main():
         colored("World landmarks JSON path:", "blue"),
         args.world_landmarks_json_path,
     )
+    print(colored("Pose backend:", "blue"), args.pose_backend)
+    print(colored("Smoothing:", "blue"), args.smoothing)
+    print(colored("Use cached landmarks:", "blue"), args.use_cached_landmarks)
 
     cruxes = Cruxes()
     cruxes.body_trajectory(
@@ -107,7 +178,7 @@ def main():
         # tracking relevant
         track_point=[
             "hip_mid",
-            "upper_body_center",
+            # "upper_body_center",
             # "head",
             "left_hand",
             "right_hand",
@@ -117,32 +188,35 @@ def main():
         # trajectory_only=True,
         #
         draw_pose=True,
-        pose_color=(255, 255, 255),
+        pose_color=(0, 0, 255),
         show_trajectory=True,
         show_gauges=False,
-        trajectory_history_seconds=0.75,
-        use_cached_landmarks=True,
+        trajectory_history_seconds=0.2,
+        use_cached_landmarks=args.use_cached_landmarks,
         # use_cached_trajectory_metadata=True,
-        export_landmarks=True,
-        # export_metadata=True,
+        # export_landmarks=True,
+        export_metadata=True,
         overlay_mask=True,
         hide_original_video=True,
         kalman_settings=[  # Kalman filter settings: [use_kalman : bool, kalman_gain : float]
             True,  # Set this to false if you don't want to apply Kalman filter
             0.5e0,  # >=1e0 for higher noise, <=1e-1 for lower noise
         ],
-        # Savitzky-Golay filter settings: [use_savgol : bool, window_length : int, polyorder : int]
-        # Window length must be odd and > polyorder
-        savgol_settings=[
-            True,  # Set to True to smooth the pose skeleton after pose estimation
-            15,  # Window length (must be odd, typical: 5-15)
-            4,  # Polynomial order (typical: 2-4, must be < window_length)
-        ],
+        smoothing=args.smoothing,
+        savgol_window=args.savgol_window,
+        savgol_order=args.savgol_order,
+        gaussian_sigma=args.gaussian_sigma,
+        smoothnet_window_size=args.smoothnet_window_size,
+        smoothnet_epochs=args.smoothnet_epochs,
+        smoothnet_lambda_accel=args.smoothnet_lambda_accel,
         track_point_visibility_threshold=args.track_point_visibility_threshold,
         pose_visibility_threshold=args.pose_visibility_threshold,
         pose_presence_threshold=args.pose_presence_threshold,
         export_world_landmarks=args.export_world_landmarks,
         world_landmarks_json_path=args.world_landmarks_json_path,
+        pose_backend=args.pose_backend,
+        trajectory_thickness=args.trajectory_thickness,
+        velocity_arrow_length=args.velocity_arrow_length,
     )
 
 

@@ -3,6 +3,11 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Environment / secrets
+.env
+.env.*
+*.env
+
 # C extensions
 *.so
 
@@ -192,3 +197,4 @@ examples/scripts/draw_heatmap_demo.py
 # ignore temporary files produced by helpers
 current_frame.jpg
 _temp_first_frame.jpg
+examples/videos/tests/*

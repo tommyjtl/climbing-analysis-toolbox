@@ -3,7 +3,6 @@ from cruxes import Cruxes
 from cruxes.utils.body_trajectory import DEFAULT_TRACK_POINT_VISIBILITY_THRESHOLD
 from cruxes.utils.pose_backend import PRESENCE_THRESHOLD, VISIBILITY_THRESHOLD
 
-
 BLEND_MODES = [
     "none",
     "feathered",
@@ -237,6 +236,20 @@ def main():
         default=PRESENCE_THRESHOLD,
         help="Minimum presence required to render a pose landmark.",
     )
+    body_parser.add_argument(
+        "--pose_backend",
+        type=str,
+        default="mediapipe",
+        choices=["mediapipe", "vitpose"],
+        help="Pose estimation backend to use (default: mediapipe).",
+    )
+    body_parser.add_argument(
+        "--smoothing",
+        type=str,
+        default="gaussian",
+        choices=["gaussian", "savgol", "smoothnet", "none"],
+        help="Smoothing method to apply to the pose skeleton (default: gaussian). Use 'none' to disable.",
+    )
 
     args = parser.parse_args()
     cruxes = Cruxes()
@@ -292,6 +305,8 @@ def main():
             track_point_visibility_threshold=args.track_point_visibility_threshold,
             pose_visibility_threshold=args.pose_visibility_threshold,
             pose_presence_threshold=args.pose_presence_threshold,
+            pose_backend=args.pose_backend,
+            smoothing=None if args.smoothing == "none" else args.smoothing,
         )
 
 

@@ -76,8 +76,11 @@ SPEED_COLOR_FAST = (29, 96, 231)
 
 TRAJECTORY_THICKNESS = 5
 VELOCITY_ARROW_LENGTH = 40
+# VELOCITY_ARROW_THICKNESS is kept for backwards-compatibility; arrow thickness
+# now defaults to TRAJECTORY_THICKNESS and can be overridden via the
+# trajectory_thickness argument (which affects both lines and arrows together).
 VELOCITY_ARROW_THICKNESS = 5
-TRAJECTORY_METADATA_SCHEMA_VERSION = "1.0"
+TRAJECTORY_METADATA_SCHEMA_VERSION = "1.1"  # processing.savgol -> processing.smoothing
 WORLD_LANDMARKS_SCHEMA_VERSION = "1.0"
 DEFAULT_VELOCITY_COLOR_PRESET = "ice_blue_candle"
 DEFAULT_TRACK_POINT_VISIBILITY_THRESHOLD = 0.6
@@ -252,7 +255,7 @@ def _copy_pose_landmarks(landmarks):
 def _build_render_pose_landmarks(
     all_pose_landmarks,
     smoothed_pose_landmarks,
-    use_savgol,
+    use_smoothing,
     num_landmarks,
 ):
     rendered_pose_landmarks = []
@@ -263,7 +266,7 @@ def _build_render_pose_landmarks(
             continue
 
         frame_landmarks = _copy_pose_landmarks(pose_landmarks)
-        if use_savgol and frame_idx < len(smoothed_pose_landmarks):
+        if use_smoothing and frame_idx < len(smoothed_pose_landmarks):
             for lm_idx in range(num_landmarks):
                 if lm_idx in smoothed_pose_landmarks[frame_idx]:
                     lm_data = smoothed_pose_landmarks[frame_idx][lm_idx]
@@ -302,13 +305,23 @@ def _serialize_pose_landmarks_for_metadata(landmarks, width, height):
 
 
 def _build_pose_metadata(
-    rendered_pose_landmarks, effective_fps, width, height, use_savgol
+    rendered_pose_landmarks,
+    effective_fps,
+    width,
+    height,
+    smoothing,
+    pose_backend="mediapipe",
 ):
+    _BACKEND_LANDMARK_MODELS = {
+        "mediapipe": "mediapipe_pose_33",
+        "vitpose": "vitpose_coco17_mapped_to_mp33",
+    }
+    landmark_model = _BACKEND_LANDMARK_MODELS.get(pose_backend, "mediapipe_pose_33")
     return {
-        "landmark_model": "mediapipe_pose_33",
+        "landmark_model": landmark_model,
         "landmark_count": len(PoseLandmark),
         "landmark_names": [landmark.name.lower() for landmark in PoseLandmark],
-        "render_landmarks_source": "savgol_smoothed" if use_savgol else "raw",
+        "render_landmarks_source": f"{smoothing}_smoothed" if smoothing else "raw",
         "coordinate_space": {
             "type": "pixel",
             "origin": "top_left",
@@ -760,9 +773,10 @@ def _build_trajectory_metadata(
     effective_fps,
     use_kalman,
     measurement_variance,
-    use_savgol,
+    smoothing,
     savgol_window,
     savgol_order,
+    gaussian_sigma=3.0,
     pose_metadata=None,
 ):
     velocity_color_presets = _build_velocity_color_presets()
@@ -809,10 +823,13 @@ def _build_trajectory_metadata(
                     float(measurement_variance) if use_kalman else None
                 ),
             },
-            "savgol": {
-                "enabled": bool(use_savgol),
-                "window_length": int(savgol_window) if use_savgol else None,
-                "polyorder": int(savgol_order) if use_savgol else None,
+            "smoothing": {
+                "method": smoothing or "none",
+                "savgol_window": int(savgol_window) if smoothing == "savgol" else None,
+                "savgol_order": int(savgol_order) if smoothing == "savgol" else None,
+                "gaussian_sigma": (
+                    float(gaussian_sigma) if smoothing == "gaussian" else None
+                ),
             },
         },
         "style": {
@@ -1153,13 +1170,35 @@ def extract_pose_and_draw_trajectory(
     trajectory_metadata_path=None,
     kalman_settings=[True, 1e-1],  # [use_kalman, measurement_variance]
     trajectory_png_path=None,  # NEW: optional PNG output path
-    savgol_settings=[False, 11, 3],  # [use_savgol, window_length, polyorder]
+    smoothing=None,  # None | "savgol" | "gaussian" | "smoothnet"
+    savgol_window=11,  # window length for Savgol filter (must be odd, > savgol_order)
+    savgol_order=3,  # polynomial order for Savgol filter
+    gaussian_sigma=3.0,  # sigma (std-dev in frames) for Gaussian filter
+    smoothnet_window_size=32,  # temporal window for SmoothNet
+    smoothnet_epochs=100,  # self-supervised training epochs
+    smoothnet_lambda_accel=0.1,  # smoothness loss weight (higher = smoother); paper default = 0.1
     track_point_visibility_threshold=DEFAULT_TRACK_POINT_VISIBILITY_THRESHOLD,
     pose_visibility_threshold=VISIBILITY_THRESHOLD,
     pose_presence_threshold=PRESENCE_THRESHOLD,
+    pose_backend="mediapipe",  # "mediapipe" or "vitpose"
+    vitpose_device=None,  # device for ViTPose ("mps", "cpu", or None for auto)
+    vitpose_det_frequency=3,  # how often YOLOX re-runs detection (every N frames)
+    trajectory_thickness=None,  # thickness for trajectory lines and velocity arrows; defaults to TRAJECTORY_THICKNESS
+    velocity_arrow_length=None,  # scale for velocity arrow length; defaults to VELOCITY_ARROW_LENGTH
 ):
     # Suppress MediaPipe warnings
     os.environ["GLOG_minloglevel"] = "2"
+
+    _trajectory_thickness = (
+        TRAJECTORY_THICKNESS
+        if trajectory_thickness is None
+        else int(trajectory_thickness)
+    )
+    _velocity_arrow_length = (
+        VELOCITY_ARROW_LENGTH
+        if velocity_arrow_length is None
+        else float(velocity_arrow_length)
+    )
 
     if overlay_trajectory is not None:
         overlay_mask = overlay_trajectory
@@ -1225,10 +1264,13 @@ def extract_pose_and_draw_trajectory(
     use_kalman = kalman_settings[0]  # whether to use Kalman filter
     measurement_variance = kalman_settings[1]  # variance for the Kalman filter
 
-    use_savgol = savgol_settings[0]  # whether to use Savitzky-Golay filter
-
-    savgol_window = savgol_settings[1]  # window length for Savgol filter (must be odd)
-    savgol_order = savgol_settings[2]  # polynomial order for Savgol filter
+    _SUPPORTED_SMOOTHING_METHODS = {"gaussian", "savgol", "smoothnet"}
+    if smoothing is not None and smoothing not in _SUPPORTED_SMOOTHING_METHODS:
+        raise ValueError(
+            f"Unsupported smoothing method: {smoothing!r}. "
+            f"Supported methods are: {sorted(_SUPPORTED_SMOOTHING_METHODS)}"
+        )
+    _apply_smoothing = smoothing in _SUPPORTED_SMOOTHING_METHODS
 
     # Initialize video capture
     cap = cv2.VideoCapture(video_path)
@@ -1385,7 +1427,11 @@ def extract_pose_and_draw_trajectory(
             or export_world_landmarks
             or export_metadata
         ):
-            pose_detector = PoseDetector()
+            pose_detector = PoseDetector(
+                backend=pose_backend,
+                vitpose_device=vitpose_device,
+                vitpose_det_frequency=vitpose_det_frequency,
+            )
         with tqdm(total=total_frames, desc=first_pass_desc, unit="frame") as pbar:
             while cap.isOpened():
                 ret, frame = cap.read()
@@ -1454,13 +1500,60 @@ def extract_pose_and_draw_trajectory(
         smoothed_pose_landmarks = []
 
         num_landmarks = 33
-        if use_savgol:
+        if _apply_smoothing and smoothing == "gaussian":
+            from scipy.ndimage import gaussian_filter1d
+
             print(
-                f"Applying Savgol filter to pose skeleton (window={savgol_window}, order={savgol_order})..."
+                f"Applying Gaussian filter to pose skeleton (sigma={gaussian_sigma})..."
             )
             smoothed_pose_landmarks = [dict() for _ in all_pose_landmarks]
 
             for lm_idx in range(num_landmarks):
+                valid_frames = []
+                x_coords = []
+                y_coords = []
+                z_coords = []
+
+                for frame_idx, pose_lm in enumerate(all_pose_landmarks):
+                    if pose_lm is not None:
+                        valid_frames.append(frame_idx)
+                        x_coords.append(pose_lm[lm_idx].x)
+                        y_coords.append(pose_lm[lm_idx].y)
+                        z_coords.append(pose_lm[lm_idx].z)
+
+                if valid_frames:
+                    x_smooth = gaussian_filter1d(x_coords, sigma=gaussian_sigma)
+                    y_smooth = gaussian_filter1d(y_coords, sigma=gaussian_sigma)
+                    z_smooth = gaussian_filter1d(z_coords, sigma=gaussian_sigma)
+
+                    for idx, frame_idx in enumerate(valid_frames):
+                        smoothed_pose_landmarks[frame_idx][lm_idx] = {
+                            "x": float(x_smooth[idx]),
+                            "y": float(y_smooth[idx]),
+                            "z": float(z_smooth[idx]),
+                            "visibility": all_pose_landmarks[frame_idx][
+                                lm_idx
+                            ].visibility,
+                            "presence": all_pose_landmarks[frame_idx][lm_idx].presence,
+                        }
+
+        elif _apply_smoothing and smoothing == "savgol":
+            _n_valid_savgol = sum(
+                1 for pose_lm in all_pose_landmarks if pose_lm is not None
+            )
+            if _n_valid_savgol < savgol_window:
+                print(
+                    f"Warning: savgol smoothing needs >= {savgol_window} valid frames "
+                    f"but only {_n_valid_savgol} are available — falling back to raw landmarks."
+                )
+                _apply_smoothing = False
+            else:
+                print(
+                    f"Applying Savgol filter to pose skeleton (window={savgol_window}, order={savgol_order})..."
+                )
+            smoothed_pose_landmarks = [dict() for _ in all_pose_landmarks]
+
+            for lm_idx in range(num_landmarks) if _apply_smoothing else ():
                 valid_frames = []
                 x_coords = []
                 y_coords = []
@@ -1489,10 +1582,25 @@ def extract_pose_and_draw_trajectory(
                             "presence": all_pose_landmarks[frame_idx][lm_idx].presence,
                         }
 
+        elif _apply_smoothing and smoothing == "smoothnet":
+            print(
+                f"Applying SmoothNet to pose skeleton "
+                f"(window={smoothnet_window_size}, epochs={smoothnet_epochs}, "
+                f"lambda_accel={smoothnet_lambda_accel})..."
+            )
+            from .smoothnet import apply_smoothnet_to_landmarks
+
+            smoothed_pose_landmarks = apply_smoothnet_to_landmarks(
+                all_pose_landmarks,
+                window_size=smoothnet_window_size,
+                epochs=smoothnet_epochs,
+                lambda_accel=smoothnet_lambda_accel,
+            )
+
         rendered_pose_landmarks = _build_render_pose_landmarks(
             all_pose_landmarks,
             smoothed_pose_landmarks,
-            use_savgol,
+            _apply_smoothing,
             num_landmarks,
         )
 
@@ -1504,7 +1612,8 @@ def extract_pose_and_draw_trajectory(
                     effective_fps,
                     width,
                     height,
-                    use_savgol,
+                    smoothing if _apply_smoothing else None,
+                    pose_backend=pose_backend,
                 )
             elif cached_trajectory_payload is not None:
                 pose_metadata = cached_trajectory_payload["metadata"].get("pose")
@@ -1519,9 +1628,10 @@ def extract_pose_and_draw_trajectory(
                 effective_fps,
                 use_kalman,
                 measurement_variance,
-                use_savgol,
+                smoothing if _apply_smoothing else None,
                 savgol_window,
                 savgol_order,
+                gaussian_sigma=gaussian_sigma,
                 pose_metadata=pose_metadata,
             )
             _save_trajectory_metadata(trajectory_export_path, trajectory_metadata)
@@ -1551,7 +1661,7 @@ def extract_pose_and_draw_trajectory(
         if render_video:
             print(
                 "Second pass - rendering video with raw trajectories and "
-                f"{'smoothed' if use_savgol else 'raw'} skeleton..."
+                f"{f'{smoothing}-smoothed' if _apply_smoothing else 'raw'} skeleton..."
             )
             frame_idx = 0
 
@@ -1618,14 +1728,14 @@ def extract_pose_and_draw_trajectory(
                                     overlay_canvas,
                                     traj,
                                     trajectory_segment_colors,
-                                    thickness=TRAJECTORY_THICKNESS,
+                                    thickness=_trajectory_thickness,
                                 )
                             else:
                                 draw_colored_trajectory(
                                     frame,
                                     traj,
                                     trajectory_segment_colors,
-                                    thickness=TRAJECTORY_THICKNESS,
+                                    thickness=_trajectory_thickness,
                                 )
 
                         # Draw velocity arrows and optional telemetry.
@@ -1674,8 +1784,8 @@ def extract_pose_and_draw_trajectory(
                             prev_point,
                             curr_point,
                             color,
-                            scale=VELOCITY_ARROW_LENGTH,
-                            thickness=VELOCITY_ARROW_THICKNESS,
+                            scale=_velocity_arrow_length,
+                            thickness=_trajectory_thickness,
                         )
 
                     if show_gauges:

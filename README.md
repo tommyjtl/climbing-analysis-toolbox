@@ -208,7 +208,7 @@ There is a couple of settings you can adjust inside the script for `extract_pose
 | `export_metadata`  | Whether to export unified frontend-facing metadata JSON, including per-sample displacement and per-second velocity vectors, per-frame pose landmarks, and explicit skeleton connections when pose data is available |
 | `metadata_path`  | Optional output path for the metadata JSON. Defaults to `<video_stem>_trajectory_metadata.json` next to the input video |
 | `kalman_settings`  | Whether to apply Kalman filter to smooth out the trajectory (not the pose itself) |
-| `savgol_settings`  | Whether to apply Savitzky-Golay filter to smooth the pose skeleton: `[use_savgol, window_length, polyorder]` |
+| `smoothing`  | Temporal smoothing applied to the pose skeleton after detection. Options: `None` (no smoothing), `"savgol"` (Savitzky-Golay), `"gaussian"` (Gaussian, **default**), `"smoothnet"` (self-supervised neural, trains per-video) |
 | `trajectory_png_path`  | Optional output path for a `.png` export of the trajectory on a black background |
 | `track_point_visibility_threshold`  | Minimum landmark visibility required when building tracked joints and derived points like `hip_mid` and `upper_body_center` |
 | `pose_visibility_threshold`  | Minimum landmark visibility required to render a pose landmark in the skeleton overlay |
@@ -218,7 +218,18 @@ For CLI usage, `--show_trajectory` is required in the normal overlay mode. If yo
 
 The dedicated pose world landmarks file is intended for 3D playback workflows such as the WebGPU sample player in the `webgpu-samples` repository. It contains the raw 33-landmark MediaPipe world coordinates in meters, rooted at the hip midpoint, plus a rough cumulative `x/y` root-translation estimate derived from hip motion in the video. The WebGPU player can toggle that estimate on or off.
 
-`--savgol_settings` is currently available in the Python API example below, not in the CLI.
+#### Pose backend and landmark count
+
+The `--pose_backend` argument selects which pose estimation model runs under the hood:
+
+| Backend | `--pose_backend` value | Landmark schema | Landmark count |
+| - | - | - | - |
+| MediaPipe Pose Landmarker | `mediapipe` (default) | MediaPipe-33 | 33 joints including eyes, ears, fingers, toes, heels |
+| ViTPose (COCO via rtmlib) | `vitpose` | COCO-17 mapped to 33-slot MediaPipe layout | 17 joints (no fingers, toes, heels, or face detail) |
+
+When `vitpose` is used the output landmarks JSON still uses the 33-slot MediaPipe index layout for compatibility, but slots that have no COCO-17 equivalent (e.g. `LEFT_PINKY`, `LEFT_FOOT_INDEX`, `LEFT_HEEL` and their right-side counterparts, plus inner/outer eye and ear indices) are filled with `visibility=0` and will be skipped by the renderer and trajectory extractor.
+
+This means the exported landmark JSON is **not directly comparable** between backends — MediaPipe will populate all 33 slots while ViTPose will leave 16 of them at zero confidence. If you need a consistent joint set across both backends, filter to the 17 joints that COCO-17 maps to: indices `0, 2, 5, 7, 8, 11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28`.
 
 Then, run the command as follows:
 
@@ -239,6 +250,8 @@ cruxes body-trajectory \
 --export_metadata \
 --json_only \
 --kalman_settings 1e0 \
+--smoothing gaussian \
+# Other smoothing options: savgol, smoothnet. Use --smoothing none to disable (gaussian is default).
 --track_point_visibility_threshold 0.6 \
 --pose_visibility_threshold 0.4 \
 --pose_presence_threshold 0.4
@@ -283,11 +296,7 @@ cruxes.body_trajectory(
         True,  # Set this to false if you don't want to apply Kalman filter
         1e0,  # >=1e0 for higher noise, <=1e-1 for lower noise
     ],
-    savgol_settings=[  # Savitzky-Golay filter: [use_savgol, window_length, polyorder]
-        True,  # Set to True to smooth pose skeleton
-        15,  # Window length (must be odd, typical: 5-15)
-        4,  # Polynomial order (typical: 2-4, must be < window_length)
-    ],
+    smoothing="gaussian",  # None | "savgol" | "gaussian" (default) | "smoothnet"
     track_point_visibility_threshold=0.6,
     pose_visibility_threshold=0.4,
     pose_presence_threshold=0.4,

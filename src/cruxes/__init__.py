@@ -271,10 +271,21 @@ class Cruxes:
             1e0,  # >=1e0 for higher noise, <=1e-1 for lower noise
         ],
         trajectory_png_path=None,
-        savgol_settings=[False, 11, 3],  # [use_savgol, window_length, polyorder]
+        smoothing="gaussian",  # None | "savgol" | "gaussian" | "smoothnet"
+        savgol_window=11,
+        savgol_order=3,
+        gaussian_sigma=3.0,
+        smoothnet_window_size=32,
+        smoothnet_epochs=100,
+        smoothnet_lambda_accel=0.1,
         track_point_visibility_threshold=0.6,
-        pose_visibility_threshold=0.4,
-        pose_presence_threshold=0.4,
+        pose_visibility_threshold=0.2,
+        pose_presence_threshold=0.2,
+        pose_backend="mediapipe",  # "mediapipe" or "vitpose"
+        vitpose_device=None,  # device for ViTPose ("mps", "cpu", or None for auto)
+        vitpose_det_frequency=3,  # how often YOLOX re-runs detection (every N frames)
+        trajectory_thickness=None,  # thickness for trajectory lines and velocity arrows
+        velocity_arrow_length=None,  # scale for velocity arrow length
     ):
         if overlay_trajectory is not None:
             overlay_mask = overlay_trajectory
@@ -318,10 +329,21 @@ class Cruxes:
             trajectory_metadata_path=trajectory_metadata_path,
             kalman_settings=kalman_settings,
             trajectory_png_path=trajectory_png_path,
-            savgol_settings=savgol_settings,
+            smoothing=smoothing,
+            savgol_window=savgol_window,
+            savgol_order=savgol_order,
+            gaussian_sigma=gaussian_sigma,
+            smoothnet_window_size=smoothnet_window_size,
+            smoothnet_epochs=smoothnet_epochs,
+            smoothnet_lambda_accel=smoothnet_lambda_accel,
             track_point_visibility_threshold=track_point_visibility_threshold,
             pose_visibility_threshold=pose_visibility_threshold,
             pose_presence_threshold=pose_presence_threshold,
+            pose_backend=pose_backend,
+            vitpose_device=vitpose_device,
+            vitpose_det_frequency=vitpose_det_frequency,
+            trajectory_thickness=trajectory_thickness,
+            velocity_arrow_length=velocity_arrow_length,
         )
 
     def compare_trajectories(

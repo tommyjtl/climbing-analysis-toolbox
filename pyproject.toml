@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cruxes"
-version = "0.1.21"
+version = "0.1.22"
 description = "A set of computer vision tools for analyzing your climbing videos."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -29,11 +29,31 @@ dependencies = [
   "image-matching-models==1.1.0",
 ]
 
+[project.optional-dependencies]
+vitpose = [
+  "rtmlib",
+]
+dev = [
+  "pytest>=8.0.0",
+  "pytest-cov>=5.0.0",
+  "mypy>=1.10.0",
+]
+
 [project.urls]
 "Homepage" = "https://github.com/tommyjtl/climbing-analysis-toolbox"
 
 [project.scripts]
 cruxes = "cruxes.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+  "integration: tests that require the full ML stack and/or real video files (deselect with '-m not integration')",
+]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
 
 [tool.setuptools]
 package-dir = {"" = "src"}

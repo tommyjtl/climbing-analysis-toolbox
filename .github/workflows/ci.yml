@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  # ------------------------------------------------------------------
+  # Type checking – fast job, no heavy ML deps needed
+  # ------------------------------------------------------------------
+  type-check:
+    name: Type Check (mypy)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install mypy and package skeleton
+        run: |
+          pip install mypy
+          pip install -e . --no-deps
+
+      - name: Run mypy
+        run: mypy src/cruxes --ignore-missing-imports --no-error-summary
+
+  # ------------------------------------------------------------------
+  # Unit / integration tests – all 49 tests, mocking heavy ML deps
+  # ------------------------------------------------------------------
+  test:
+    name: Tests (pytest)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install package (no heavy ML deps) and test tools
+        run: |
+          pip install pytest pytest-cov
+          pip install -e . --no-deps
+          # Install the lightweight runtime deps that are actually needed
+          pip install termcolor numpy scipy tqdm
+
+      - name: Run tests
+        run: pytest tests/ -v --tb=short --cov=src/cruxes --cov-report=term-missing -m "not integration"
