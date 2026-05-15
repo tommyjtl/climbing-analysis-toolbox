@@ -1,4 +1,5 @@
 import argparse
+import importlib.metadata
 from cruxes import Cruxes
 from cruxes.utils.body_trajectory import DEFAULT_TRACK_POINT_VISIBILITY_THRESHOLD
 from cruxes.utils.pose_backend import PRESENCE_THRESHOLD, VISIBILITY_THRESHOLD
@@ -14,9 +15,14 @@ BLEND_MODES = [
 
 
 def main():
+    try:
+        _version = importlib.metadata.version("cruxes")
+    except importlib.metadata.PackageNotFoundError:
+        _version = "unknown"
     parser = argparse.ArgumentParser(
         description="Cruxes: Climbing Analysis Toolbox CLI"
     )
+    parser.add_argument("--version", action="version", version=f"%(prog)s {_version}")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     """
