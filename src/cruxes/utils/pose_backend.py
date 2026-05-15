@@ -10,7 +10,6 @@ from urllib.request import urlopen
 import cv2
 import mediapipe as mp
 
-
 POSE_MODEL_ENV_VAR = "CRUXES_POSE_MODEL_PATH"
 DEFAULT_POSE_MODEL_URL = (
     "https://storage.googleapis.com/mediapipe-models/pose_landmarker/"
@@ -283,6 +282,7 @@ class ViTPoseDetector:
             device = _auto_detect_vitpose_device()
 
         from functools import partial
+
         try:
             from rtmlib import PoseTracker, Custom
         except ImportError as exc:

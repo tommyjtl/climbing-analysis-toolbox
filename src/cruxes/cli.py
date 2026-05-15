@@ -3,7 +3,6 @@ from cruxes import Cruxes
 from cruxes.utils.body_trajectory import DEFAULT_TRACK_POINT_VISIBILITY_THRESHOLD
 from cruxes.utils.pose_backend import PRESENCE_THRESHOLD, VISIBILITY_THRESHOLD
 
-
 BLEND_MODES = [
     "none",
     "feathered",

@@ -28,7 +28,8 @@ from pathlib import Path
 import cv2
 import numpy as np
 import matplotlib
-matplotlib.use("Agg")           # headless-safe
+
+matplotlib.use("Agg")  # headless-safe
 import matplotlib.pyplot as plt
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
@@ -45,6 +46,7 @@ from cruxes.utils.smoothnet import (
 def run_gaussian(coords, valid, sigma):
     """Apply per-joint Gaussian filter over valid-frame subsequences."""
     from scipy.ndimage import gaussian_filter1d
+
     T, n_joints, _ = coords.shape
     sm = coords.copy()
     valid_idx = np.where(valid)[0]
@@ -60,17 +62,27 @@ def run_gaussian(coords, valid, sigma):
 
 # MediaPipe joint names for the subset we care about
 _JOINT_NAMES = {
-    0:  "nose",
-    11: "l_shoulder", 12: "r_shoulder",
-    13: "l_elbow",    14: "r_elbow",
-    15: "l_wrist",    16: "r_wrist",
-    23: "l_hip",      24: "r_hip",
+    0: "nose",
+    11: "l_shoulder",
+    12: "r_shoulder",
+    13: "l_elbow",
+    14: "r_elbow",
+    15: "l_wrist",
+    16: "r_wrist",
+    23: "l_hip",
+    24: "r_hip",
 }
 
 # Skeleton connections (MediaPipe-33 subset used by ViTPose)
 _CONNECTIONS = [
-    (11,12),(11,13),(13,15),(12,14),(14,16),
-    (11,23),(12,24),(23,24),
+    (11, 12),
+    (11, 13),
+    (13, 15),
+    (12, 14),
+    (14, 16),
+    (11, 23),
+    (12, 24),
+    (23, 24),
 ]
 
 
@@ -80,8 +92,8 @@ def load_landmarks(path):
     frames = payload["frames"]
     T = len(frames)
     coords = np.full((T, 33, 2), np.nan, dtype=np.float32)
-    confs  = np.zeros((T, 33), dtype=np.float32)
-    valid  = np.zeros(T, dtype=bool)
+    confs = np.zeros((T, 33), dtype=np.float32)
+    valid = np.zeros(T, dtype=bool)
     for t, frame in enumerate(frames):
         if frame is None:
             continue
@@ -98,29 +110,39 @@ def run_smoothnet(coords, confs, valid, window_size, epochs, lambda_accel, devic
     T = len(valid)
     n_joints = 33
     coords_flat = coords.reshape(T, n_joints * 2).copy()
-    confs_flat  = np.repeat(confs, 2, axis=1)
+    confs_flat = np.repeat(confs, 2, axis=1)
     # fill NaN slots before interpolation
     coords_flat[np.isnan(coords_flat)] = 0.0
     coords_flat = _fill_invalid_frames(coords_flat, valid)
     confs_flat[~valid] = 0.0
 
     model = SmoothNet(
-        window_size=window_size, n_channels=66,
-        hidden_size=512, res_hidden_size=128, num_blocks=5, dropout=0.25,
+        window_size=window_size,
+        n_channels=66,
+        hidden_size=512,
+        res_hidden_size=128,
+        num_blocks=5,
+        dropout=0.25,
     ).to(device)
 
-    train_smoothnet(model, coords_flat, confs_flat,
-                    window_size=window_size, epochs=epochs,
-                    lambda_accel=lambda_accel, device=device)
+    train_smoothnet(
+        model,
+        coords_flat,
+        confs_flat,
+        window_size=window_size,
+        epochs=epochs,
+        lambda_accel=lambda_accel,
+        device=device,
+    )
 
     refined_flat = infer_smoothnet(model, coords_flat, window_size, device)
 
     # Affine correction: match mean AND std of each channel over valid frames.
     raw_mean = coords_flat[valid].mean(axis=0)
-    sm_mean  = refined_flat[valid].mean(axis=0)
-    raw_std  = coords_flat[valid].std(axis=0) + 1e-8
-    sm_std   = refined_flat[valid].std(axis=0) + 1e-8
-    scale    = raw_std / sm_std
+    sm_mean = refined_flat[valid].mean(axis=0)
+    raw_std = coords_flat[valid].std(axis=0) + 1e-8
+    sm_std = refined_flat[valid].std(axis=0) + 1e-8
+    scale = raw_std / sm_std
     refined_flat = (refined_flat - sm_mean) * scale + raw_mean
     bias = sm_mean - raw_mean
     if np.abs(bias).max() > 1e-4 or np.abs(scale - 1.0).max() > 1e-3:
@@ -144,17 +166,17 @@ def plot_comparison(raw_coords, sm_coords, valid, joints, out_path):
         name = _JOINT_NAMES.get(j, f"joint_{j}")
         raw_x = np.where(valid, raw_coords[:, j, 0], np.nan)
         raw_y = np.where(valid, raw_coords[:, j, 1], np.nan)
-        sm_x  = np.where(valid, sm_coords[:, j, 0], np.nan)
-        sm_y  = np.where(valid, sm_coords[:, j, 1], np.nan)
+        sm_x = np.where(valid, sm_coords[:, j, 0], np.nan)
+        sm_y = np.where(valid, sm_coords[:, j, 1], np.nan)
 
         ax_x, ax_y = axes[row]
-        ax_x.plot(frames, raw_x, lw=0.8, color="steelblue",  label="raw",      alpha=0.8)
-        ax_x.plot(frames, sm_x,  lw=0.8, color="darkorange", label="smoothed", alpha=0.8)
+        ax_x.plot(frames, raw_x, lw=0.8, color="steelblue", label="raw", alpha=0.8)
+        ax_x.plot(frames, sm_x, lw=0.8, color="darkorange", label="smoothed", alpha=0.8)
         ax_x.set_ylabel(f"{name}\nx (normalised)")
         ax_x.legend(fontsize=7)
 
-        ax_y.plot(frames, raw_y, lw=0.8, color="steelblue",  alpha=0.8)
-        ax_y.plot(frames, sm_y,  lw=0.8, color="darkorange", alpha=0.8)
+        ax_y.plot(frames, raw_y, lw=0.8, color="steelblue", alpha=0.8)
+        ax_y.plot(frames, sm_y, lw=0.8, color="darkorange", alpha=0.8)
         ax_y.set_ylabel("y (normalised)")
 
     axes[-1][0].set_xlabel("frame")
@@ -168,11 +190,13 @@ def plot_comparison(raw_coords, sm_coords, valid, joints, out_path):
 
 def print_stats(raw_coords, sm_coords, valid, joints):
     print("\n── Per-joint displacement stats (raw → smoothed, valid frames only) ──")
-    print(f"  {'joint':<14}  {'mean |Δ|':>9}  {'max |Δ|':>9}  {'mean Δx':>9}  {'mean Δy':>9}")
+    print(
+        f"  {'joint':<14}  {'mean |Δ|':>9}  {'max |Δ|':>9}  {'mean Δx':>9}  {'mean Δy':>9}"
+    )
     for j in joints:
         name = _JOINT_NAMES.get(j, f"joint_{j}")
-        raw = raw_coords[valid, j, :]   # (V, 2)
-        sm  = sm_coords[valid, j, :]
+        raw = raw_coords[valid, j, :]  # (V, 2)
+        sm = sm_coords[valid, j, :]
         diff = sm - raw
         dist = np.linalg.norm(diff, axis=1)
         print(
@@ -186,8 +210,8 @@ def render_overlay_video(video_path, raw_coords, sm_coords, valid, out_path, n_f
     """Render a video with raw skeleton (red) and smoothed skeleton (green) overlaid."""
     cap = cv2.VideoCapture(video_path)
     fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
-    w   = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    h   = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     out = cv2.VideoWriter(out_path, fourcc, fps, (w, h))
 
@@ -200,30 +224,46 @@ def render_overlay_video(video_path, raw_coords, sm_coords, valid, out_path, n_f
         if valid[frame_idx]:
             for jA, jB in _CONNECTIONS:
                 # raw — blue
-                pA = (int(raw_coords[frame_idx, jA, 0] * w),
-                      int(raw_coords[frame_idx, jA, 1] * h))
-                pB = (int(raw_coords[frame_idx, jB, 0] * w),
-                      int(raw_coords[frame_idx, jB, 1] * h))
+                pA = (
+                    int(raw_coords[frame_idx, jA, 0] * w),
+                    int(raw_coords[frame_idx, jA, 1] * h),
+                )
+                pB = (
+                    int(raw_coords[frame_idx, jB, 0] * w),
+                    int(raw_coords[frame_idx, jB, 1] * h),
+                )
                 cv2.line(frame, pA, pB, (200, 80, 80), 2)
 
                 # smoothed — green
-                sA = (int(sm_coords[frame_idx, jA, 0] * w),
-                      int(sm_coords[frame_idx, jA, 1] * h))
-                sB = (int(sm_coords[frame_idx, jB, 0] * w),
-                      int(sm_coords[frame_idx, jB, 1] * h))
+                sA = (
+                    int(sm_coords[frame_idx, jA, 0] * w),
+                    int(sm_coords[frame_idx, jA, 1] * h),
+                )
+                sB = (
+                    int(sm_coords[frame_idx, jB, 0] * w),
+                    int(sm_coords[frame_idx, jB, 1] * h),
+                )
                 cv2.line(frame, sA, sB, (80, 200, 80), 2)
 
             for j in _JOINT_NAMES:
-                rx, ry = (int(raw_coords[frame_idx, j, 0] * w),
-                          int(raw_coords[frame_idx, j, 1] * h))
-                sx, sy = (int(sm_coords[frame_idx, j, 0] * w),
-                          int(sm_coords[frame_idx, j, 1] * h))
-                cv2.circle(frame, (rx, ry), 4, (200, 80, 80), -1)   # raw   blue dot
-                cv2.circle(frame, (sx, sy), 4, (80, 200, 80), -1)   # smooth green dot
+                rx, ry = (
+                    int(raw_coords[frame_idx, j, 0] * w),
+                    int(raw_coords[frame_idx, j, 1] * h),
+                )
+                sx, sy = (
+                    int(sm_coords[frame_idx, j, 0] * w),
+                    int(sm_coords[frame_idx, j, 1] * h),
+                )
+                cv2.circle(frame, (rx, ry), 4, (200, 80, 80), -1)  # raw   blue dot
+                cv2.circle(frame, (sx, sy), 4, (80, 200, 80), -1)  # smooth green dot
 
         # legend
-        cv2.putText(frame, "raw",      (12, 28), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (200, 80, 80),  2)
-        cv2.putText(frame, "smoothed", (12, 56), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (80, 200, 80), 2)
+        cv2.putText(
+            frame, "raw", (12, 28), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (200, 80, 80), 2
+        )
+        cv2.putText(
+            frame, "smoothed", (12, 56), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (80, 200, 80), 2
+        )
         out.write(frame)
         frame_idx += 1
 
@@ -236,34 +276,54 @@ def main():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
-    parser.add_argument("--landmarks", "-l", required=True,
-                        help="Raw landmarks JSON.")
-    parser.add_argument("--smoothed", "-s", default=None,
-                        help="Pre-computed smoothed landmarks JSON. "
-                             "If omitted, SmoothNet is run here.")
-    parser.add_argument("--video", "-v", default=None,
-                        help="Source video path for overlay rendering.")
-    parser.add_argument("--overlay_frames", type=int, default=0,
-                        help="Number of frames to render in overlay video (0 = skip).")
-    parser.add_argument("--method", type=str, default="smoothnet",
-                        choices=["smoothnet", "gaussian"],
-                        help="Smoothing method to run (default: smoothnet).")
-    parser.add_argument("--gaussian_sigma", type=float, default=3.0,
-                        help="Sigma (frames) for Gaussian smoothing (default: 3.0).")
+    parser.add_argument("--landmarks", "-l", required=True, help="Raw landmarks JSON.")
+    parser.add_argument(
+        "--smoothed",
+        "-s",
+        default=None,
+        help="Pre-computed smoothed landmarks JSON. "
+        "If omitted, SmoothNet is run here.",
+    )
+    parser.add_argument(
+        "--video", "-v", default=None, help="Source video path for overlay rendering."
+    )
+    parser.add_argument(
+        "--overlay_frames",
+        type=int,
+        default=0,
+        help="Number of frames to render in overlay video (0 = skip).",
+    )
+    parser.add_argument(
+        "--method",
+        type=str,
+        default="smoothnet",
+        choices=["smoothnet", "gaussian"],
+        help="Smoothing method to run (default: smoothnet).",
+    )
+    parser.add_argument(
+        "--gaussian_sigma",
+        type=float,
+        default=3.0,
+        help="Sigma (frames) for Gaussian smoothing (default: 3.0).",
+    )
     parser.add_argument("--window_size", type=int, default=32)
-    parser.add_argument("--epochs",      type=int, default=100)
-    parser.add_argument("--lambda_accel",type=float, default=0.1)
-    parser.add_argument("--device",      type=str, default=None)
-    parser.add_argument("--joints", type=int, nargs="+",
-                        default=[0, 15, 16, 11, 12],
-                        help="Joint indices to plot.")
+    parser.add_argument("--epochs", type=int, default=100)
+    parser.add_argument("--lambda_accel", type=float, default=0.1)
+    parser.add_argument("--device", type=str, default=None)
+    parser.add_argument(
+        "--joints",
+        type=int,
+        nargs="+",
+        default=[0, 15, 16, 11, 12],
+        help="Joint indices to plot.",
+    )
     args = parser.parse_args()
 
-    device = (torch.device(args.device) if args.device else auto_detect_device())
+    device = torch.device(args.device) if args.device else auto_detect_device()
     # lazy torch import only needed for actual training
     import torch
 
-    stem   = Path(args.landmarks).stem
+    stem = Path(args.landmarks).stem
     parent = Path(args.landmarks).parent
 
     # ── Load raw ──
@@ -294,11 +354,18 @@ def main():
             json.dump(out_payload, f)
         print(f"Saved smoothed JSON → {sm_path}")
     else:
-        device = auto_detect_device() if args.device is None else torch.device(args.device)
+        device = (
+            auto_detect_device() if args.device is None else torch.device(args.device)
+        )
         print("Running SmoothNet...")
         sm_coords = run_smoothnet(
-            raw_coords.copy(), confs, valid,
-            args.window_size, args.epochs, args.lambda_accel, device,
+            raw_coords.copy(),
+            confs,
+            valid,
+            args.window_size,
+            args.epochs,
+            args.lambda_accel,
+            device,
         )
         # Save smoothed JSON
         sm_path = str(parent / f"{stem}_smoothed.json")
@@ -326,8 +393,12 @@ def main():
     if args.overlay_frames > 0 and args.video:
         overlay_path = str(parent / f"{stem}_overlay.mp4")
         render_overlay_video(
-            args.video, raw_coords, sm_coords, valid,
-            overlay_path, args.overlay_frames,
+            args.video,
+            raw_coords,
+            sm_coords,
+            valid,
+            overlay_path,
+            args.overlay_frames,
         )
 
 

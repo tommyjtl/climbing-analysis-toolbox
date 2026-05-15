@@ -65,7 +65,6 @@ from cruxes.utils.smoothnet import (  # noqa: E402
     _fill_invalid_frames,
 )
 
-
 # ── Data loading / saving ──────────────────────────────────────────────────────
 
 
