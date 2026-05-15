@@ -128,6 +128,12 @@ def main():
         default=None,
         help="Scale factor for velocity arrow length (default: 40).",
     )
+    parser.add_argument(
+        "--use_cached_landmarks",
+        action="store_true",
+        default=False,
+        help="Load landmarks from a previously saved JSON cache instead of re-running pose detection. Falls back to re-detection if no valid cache exists.",
+    )
     args = parser.parse_args()
     if not args.video_path or args.video_path == "":
         print(
@@ -163,6 +169,7 @@ def main():
     )
     print(colored("Pose backend:", "blue"), args.pose_backend)
     print(colored("Smoothing:", "blue"), args.smoothing)
+    print(colored("Use cached landmarks:", "blue"), args.use_cached_landmarks)
 
     cruxes = Cruxes()
     cruxes.body_trajectory(
@@ -181,16 +188,16 @@ def main():
         # trajectory_only=True,
         #
         draw_pose=True,
-        pose_color=(255, 255, 255),
+        pose_color=(0, 0, 255),
         show_trajectory=True,
         show_gauges=False,
-        # trajectory_history_seconds=1.5,
-        use_cached_landmarks=True,
+        trajectory_history_seconds=0.2,
+        use_cached_landmarks=args.use_cached_landmarks,
         # use_cached_trajectory_metadata=True,
-        export_landmarks=True,
-        # export_metadata=True,
+        # export_landmarks=True,
+        export_metadata=True,
         overlay_mask=True,
-        hide_original_video=False,
+        hide_original_video=True,
         kalman_settings=[  # Kalman filter settings: [use_kalman : bool, kalman_gain : float]
             True,  # Set this to false if you don't want to apply Kalman filter
             0.5e0,  # >=1e0 for higher noise, <=1e-1 for lower noise

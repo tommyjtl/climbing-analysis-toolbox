@@ -763,6 +763,7 @@ def _build_trajectory_metadata(
     smoothing,
     savgol_window,
     savgol_order,
+    gaussian_sigma=3.0,
     pose_metadata=None,
 ):
     velocity_color_presets = _build_velocity_color_presets()
@@ -1600,6 +1601,7 @@ def extract_pose_and_draw_trajectory(
                 smoothing if _apply_smoothing else None,
                 savgol_window,
                 savgol_order,
+                gaussian_sigma=gaussian_sigma,
                 pose_metadata=pose_metadata,
             )
             _save_trajectory_metadata(trajectory_export_path, trajectory_metadata)
