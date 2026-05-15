@@ -39,8 +39,7 @@ import pytest
 # MagicMock is never the real module, so checking all three avoids a false
 # positive when cv2 is present but mediapipe or torch are missing.
 _HEAVY_DEPS_AVAILABLE = not any(
-    isinstance(sys.modules.get(mod), MagicMock)
-    for mod in ("cv2", "mediapipe", "torch")
+    isinstance(sys.modules.get(mod), MagicMock) for mod in ("cv2", "mediapipe", "torch")
 )
 
 pytestmark = pytest.mark.skipif(
