@@ -12,24 +12,17 @@ import tomllib
 from pathlib import Path
 from urllib import error, request
 
-
 CATEGORY_ORDER = (
-    "cli_user_workflow",
-    "python_api_developer_integration",
-    "metadata_caching_outputs",
+    "whats_new",
+    "improvements",
     "fixes",
-    "performance_reliability",
-    "docs_release_tooling",
     "breaking_changes",
     "upgrade_notes",
 )
 CATEGORY_TITLES = {
-    "cli_user_workflow": "CLI and User Workflow",
-    "python_api_developer_integration": "Python API and Developer Integration",
-    "metadata_caching_outputs": "Metadata, Caching, and Output Formats",
+    "whats_new": "What's New",
+    "improvements": "Improvements",
     "fixes": "Fixes",
-    "performance_reliability": "Performance and Reliability",
-    "docs_release_tooling": "Docs and Release Tooling",
     "breaking_changes": "Breaking Changes",
     "upgrade_notes": "Upgrade Notes",
 }
@@ -137,7 +130,7 @@ def _matches_any(text: str, patterns: tuple[str, ...]) -> bool:
     return any(re.search(pattern, text) for pattern in patterns)
 
 
-def _classify_subject(subject: str) -> str:
+def _classify_subject(subject: str) -> str | None:
     lowered = subject.lower()
     conventional_match = CONVENTIONAL_TYPE_PATTERN.match(subject.strip())
     commit_type = None
@@ -165,54 +158,19 @@ def _classify_subject(subject: str) -> str:
     ):
         return "upgrade_notes"
 
+    # Pure internal/tooling — omit from output
     if commit_type in {"docs", "chore", "build", "ci", "style"} or _matches_any(
         lowered,
         (
-            r"\breadme\b",
-            r"\bbuild\b",
-            r"\bworkflow\b",
             r"\bpre-commit\b",
             r"\bpublish\b",
             r"\brelease note",
             r"\bgithub action",
             r"\bautomation\b",
             r"\btooling\b",
-            r"\bdocs?\b",
         ),
     ):
-        return "docs_release_tooling"
-
-    if _matches_any(
-        lowered,
-        (
-            r"\bmetadata\b",
-            r"\bcache\b",
-            r"\bcached\b",
-            r"\blandmarks?\b",
-            r"\bjson\b",
-            r"\bschema\b",
-            r"\boutput\b",
-            r"\bexport\b",
-            r"\bpng\b",
-            r"\btrajectory metadata\b",
-        ),
-    ):
-        return "metadata_caching_outputs"
-
-    if _matches_any(
-        lowered,
-        (
-            r"\bapi\b",
-            r"\bpublic api\b",
-            r"\bpython\b",
-            r"\bintegration\b",
-            r"\bsignature\b",
-            r"\bwrapper\b",
-            r"\bparameter\b",
-            r"\bargument\b",
-        ),
-    ):
-        return "python_api_developer_integration"
+        return None
 
     if commit_type == "fix" or _matches_any(
         lowered,
@@ -242,31 +200,10 @@ def _classify_subject(subject: str) -> str:
             r"\bcaching option\b",
         ),
     ):
-        return "performance_reliability"
+        return "improvements"
 
-    if commit_type == "feat" or _matches_any(
-        lowered,
-        (
-            r"\bcli\b",
-            r"\bcommand\b",
-            r"\bflag\b",
-            r"\boption\b",
-            r"\bworkflow\b",
-            r"\btelemetry\b",
-            r"\bvisuali[sz]ation\b",
-            r"\brender\b",
-            r"\btrajectory\b",
-            r"\bpose\b",
-            r"\bwarp\b",
-            r"\bfeature\b",
-            r"\badd\b",
-            r"\badded\b",
-            r"\bnew\b",
-        ),
-    ):
-        return "cli_user_workflow"
-
-    return "python_api_developer_integration"
+    # Features, new options, API/CLI additions, metadata, outputs — all go here
+    return "whats_new"
 
 
 def _categorize_subjects(subjects: list[str]) -> dict[str, list[str]]:
@@ -277,6 +214,8 @@ def _categorize_subjects(subjects: list[str]) -> dict[str, list[str]]:
         if _is_version_only_commit(subject):
             continue
         category = _classify_subject(subject)
+        if category is None:
+            continue
         normalized = _normalize_subject(subject)
         if not normalized:
             continue
@@ -345,8 +284,6 @@ def _has_entries(categories: dict[str, list[str]]) -> bool:
 def _render_release_notes_from_sections(
     version: str,
     previous_tag: str | None,
-    commit_range: str,
-    changed_files: list[str],
     summary: str,
     categories: dict[str, list[str]],
 ) -> str:
@@ -360,7 +297,7 @@ def _render_release_notes_from_sections(
         )
     lines.append("")
 
-    lines.append("### Developer Summary")
+    lines.append("### Summary")
     lines.append(summary)
     lines.append("")
 
@@ -372,11 +309,6 @@ def _render_release_notes_from_sections(
         lines.extend(f"- {entry}" for entry in entries)
         lines.append("")
 
-    lines.append("### Developer Notes")
-    lines.append(f"- Commit range: `{commit_range}`")
-    lines.append("- Files touched:")
-    lines.extend(_format_changed_files(changed_files))
-    lines.append("")
     lines.append("### Install")
     lines.append("```shell")
     lines.append(f"pip install cruxes=={version}")
@@ -392,8 +324,6 @@ def _render_fallback_release_notes(context: dict[str, object]) -> str:
     return _render_release_notes_from_sections(
         version=str(context["version"]),
         previous_tag=context["previous_tag"],
-        commit_range=str(context["commit_range"]),
-        changed_files=list(context["changed_files"]),
         summary=summary,
         categories=categories,
     )
@@ -407,28 +337,22 @@ def _build_openai_prompt(context: dict[str, object]) -> str:
         "Return valid JSON with this exact shape:\n"
         "{\n"
         '  "summary": "short paragraph",\n'
-        '  "cli_user_workflow": ["bullet", "bullet"],\n'
-        '  "python_api_developer_integration": ["bullet", "bullet"],\n'
-        '  "metadata_caching_outputs": ["bullet", "bullet"],\n'
+        '  "whats_new": ["bullet", "bullet"],\n'
+        '  "improvements": ["bullet", "bullet"],\n'
         '  "fixes": ["bullet", "bullet"],\n'
-        '  "performance_reliability": ["bullet", "bullet"],\n'
-        '  "docs_release_tooling": ["bullet", "bullet"],\n'
         '  "breaking_changes": ["bullet", "bullet"],\n'
         '  "upgrade_notes": ["bullet", "bullet"]\n'
         "}\n\n"
         "Rules:\n"
         "- `summary` must be 1-2 sentences.\n"
         "- Each list item must be a concise developer-facing statement.\n"
-        "- `cli_user_workflow` is for CLI-visible behavior, flags, commands, and user-facing workflow changes.\n"
-        "- `python_api_developer_integration` is for Python API changes, wrappers, integrations, and developer-facing interfaces.\n"
-        "- `metadata_caching_outputs` is for metadata schema, caching, exported files, JSON payloads, and output-format changes.\n"
+        "- `whats_new` is for new features, new CLI flags/commands, new API options, new outputs, and new backends.\n"
+        "- `improvements` is for speed, stability, robustness, refactoring, and enhancements to existing functionality.\n"
         "- `fixes` is for bugs and corrected behavior.\n"
-        "- `performance_reliability` is for speed, stability, cleanup, robustness, and maintainability improvements that change execution quality.\n"
-        "- `docs_release_tooling` is for docs, CI, pre-commit, publishing, and release automation changes.\n"
         "- `breaking_changes` is only for incompatible changes that require consumer attention.\n"
         "- `upgrade_notes` is for migration guidance, renamed options, deprecations, cache reset notes, or manual upgrade actions.\n"
-        "- Use empty arrays when a section has nothing worth mentioning.\n"
-        "- Do not mention version bumps unless they matter to developers.\n\n"
+        "- Omit internal tooling, CI, docs-only, and version-bump commits.\n"
+        "- Use empty arrays when a section has nothing worth mentioning.\n\n"
         f"Version: {context['version']}\n"
         f"Previous tag: {context['previous_tag']}\n"
         f"Commit range: {context['commit_range']}\n\n"
@@ -539,8 +463,6 @@ def _call_openai_release_notes(context: dict[str, object], model: str) -> str:
     return _render_release_notes_from_sections(
         version=str(context["version"]),
         previous_tag=context["previous_tag"],
-        commit_range=str(context["commit_range"]),
-        changed_files=list(context["changed_files"]),
         summary=summary.strip(),
         categories=categories,
     )

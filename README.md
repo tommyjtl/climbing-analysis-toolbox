@@ -208,7 +208,7 @@ There is a couple of settings you can adjust inside the script for `extract_pose
 | `export_metadata`  | Whether to export unified frontend-facing metadata JSON, including per-sample displacement and per-second velocity vectors, per-frame pose landmarks, and explicit skeleton connections when pose data is available |
 | `metadata_path`  | Optional output path for the metadata JSON. Defaults to `<video_stem>_trajectory_metadata.json` next to the input video |
 | `kalman_settings`  | Whether to apply Kalman filter to smooth out the trajectory (not the pose itself) |
-| `smoothing`  | Temporal smoothing applied to the pose skeleton after detection. Options: `None` (default, no smoothing), `"savgol"` (Savitzky-Golay), `"gaussian"` (Gaussian), `"smoothnet"` (self-supervised neural, trains per-video) |
+| `smoothing`  | Temporal smoothing applied to the pose skeleton after detection. Options: `None` (no smoothing), `"savgol"` (Savitzky-Golay), `"gaussian"` (Gaussian, **default**), `"smoothnet"` (self-supervised neural, trains per-video) |
 | `trajectory_png_path`  | Optional output path for a `.png` export of the trajectory on a black background |
 | `track_point_visibility_threshold`  | Minimum landmark visibility required when building tracked joints and derived points like `hip_mid` and `upper_body_center` |
 | `pose_visibility_threshold`  | Minimum landmark visibility required to render a pose landmark in the skeleton overlay |
@@ -251,7 +251,7 @@ cruxes body-trajectory \
 --json_only \
 --kalman_settings 1e0 \
 --smoothing gaussian \
-# Other smoothing options: savgol, smoothnet (omit flag for no smoothing)
+# Other smoothing options: savgol, smoothnet, or omit for no smoothing (gaussian is default)
 --track_point_visibility_threshold 0.6 \
 --pose_visibility_threshold 0.4 \
 --pose_presence_threshold 0.4
@@ -296,7 +296,7 @@ cruxes.body_trajectory(
         True,  # Set this to false if you don't want to apply Kalman filter
         1e0,  # >=1e0 for higher noise, <=1e-1 for lower noise
     ],
-    smoothing=None,  # None | "savgol" | "gaussian" | "smoothnet"
+    smoothing="gaussian",  # None | "savgol" | "gaussian" (default) | "smoothnet"
     track_point_visibility_threshold=0.6,
     pose_visibility_threshold=0.4,
     pose_presence_threshold=0.4,

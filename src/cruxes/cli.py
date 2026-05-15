@@ -246,9 +246,9 @@ def main():
     body_parser.add_argument(
         "--smoothing",
         type=str,
-        default=None,
+        default="gaussian",
         choices=["gaussian", "savgol", "smoothnet"],
-        help="Smoothing method to apply to the pose skeleton (default: none).",
+        help="Smoothing method to apply to the pose skeleton (default: gaussian).",
     )
 
     args = parser.parse_args()

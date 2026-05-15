@@ -271,7 +271,7 @@ class Cruxes:
             1e0,  # >=1e0 for higher noise, <=1e-1 for lower noise
         ],
         trajectory_png_path=None,
-        smoothing=None,  # None | "savgol" | "gaussian" | "smoothnet"
+        smoothing="gaussian",  # None | "savgol" | "gaussian" | "smoothnet"
         savgol_window=11,
         savgol_order=3,
         gaussian_sigma=3.0,
