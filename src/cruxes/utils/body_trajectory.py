@@ -1538,12 +1538,22 @@ def extract_pose_and_draw_trajectory(
                         }
 
         elif _apply_smoothing and smoothing == "savgol":
-            print(
-                f"Applying Savgol filter to pose skeleton (window={savgol_window}, order={savgol_order})..."
+            _n_valid_savgol = sum(
+                1 for pose_lm in all_pose_landmarks if pose_lm is not None
             )
+            if _n_valid_savgol < savgol_window:
+                print(
+                    f"Warning: savgol smoothing needs >= {savgol_window} valid frames "
+                    f"but only {_n_valid_savgol} are available — falling back to raw landmarks."
+                )
+                _apply_smoothing = False
+            else:
+                print(
+                    f"Applying Savgol filter to pose skeleton (window={savgol_window}, order={savgol_order})..."
+                )
             smoothed_pose_landmarks = [dict() for _ in all_pose_landmarks]
 
-            for lm_idx in range(num_landmarks):
+            for lm_idx in range(num_landmarks) if _apply_smoothing else ():
                 valid_frames = []
                 x_coords = []
                 y_coords = []

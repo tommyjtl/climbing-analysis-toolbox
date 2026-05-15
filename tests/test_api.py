@@ -132,11 +132,14 @@ def test_warp_image_missing_src_returns_false(tmp_path):
     # Write a tiny real-looking PNG for the reference
     ref_path = tmp_path / "ref.png"
     try:
-        real_write = cv2_mod.imwrite(str(ref_path), np.zeros((10, 10, 3), dtype=np.uint8))
-        if not real_write:
-            raise RuntimeError("cv2.imwrite failed (may be a mock)")
+        cv2_mod.imwrite(str(ref_path), np.zeros((10, 10, 3), dtype=np.uint8))
     except Exception:
-        # cv2 is mocked – just create an empty file so os.path.exists passes
+        pass
+
+    if not ref_path.exists():
+        # cv2 may be mocked: imwrite() returns a truthy MagicMock without
+        # creating a file, so ref_path wouldn't exist and the test would
+        # accidentally exercise the "missing ref" path instead of "missing src".
         ref_path.write_bytes(b"\x00")
 
     c = Cruxes()
