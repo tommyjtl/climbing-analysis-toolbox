@@ -25,6 +25,7 @@ Running locally
 
 If CRUXES_TEST_VIDEO is not set, all video-processing tests are skipped.
 """
+
 import os
 import sys
 from pathlib import Path
@@ -50,7 +51,9 @@ pytestmark = pytest.mark.skipif(
 # ── Test data ────────────────────────────────────────────────────────────────
 
 _ENV_VIDEO = os.environ.get("CRUXES_TEST_VIDEO", "")
-_TEST_VIDEO_PATH: str | None = _ENV_VIDEO if _ENV_VIDEO and Path(_ENV_VIDEO).is_file() else None
+_TEST_VIDEO_PATH: str | None = (
+    _ENV_VIDEO if _ENV_VIDEO and Path(_ENV_VIDEO).is_file() else None
+)
 
 _REPO_ROOT = Path(__file__).parent.parent
 _EXAMPLES_LANDMARKS_DIR = _REPO_ROOT / "examples" / "videos" / "tests"
