@@ -156,7 +156,7 @@ def train_smoothnet(
     epochs: int = 100,
     lr: float = 1e-3,
     lambda_accel: float = 0.1,
-    device: torch.device = None,
+    device: torch.device | None = None,
     verbose: bool = True,
 ):
     """Self-supervised training loop.
@@ -225,7 +225,7 @@ def infer_smoothnet(
     model: SmoothNet,
     coords_flat: np.ndarray,  # (T, C)
     window_size: int,
-    device: torch.device = None,
+    device: torch.device | None = None,
     batch_size: int = 256,
 ) -> np.ndarray:  # (T, C) refined
     """Inference without any padding.
@@ -387,7 +387,7 @@ def apply_smoothnet_to_landmarks(
     refined_coords = np.clip(refined_flat.reshape(T, n_joints, 2), 0.0, 1.0)
 
     # Build the smoothed_pose_landmarks list of dicts (same shape as savgol output)
-    smoothed_pose_landmarks = [{} for _ in range(T)]
+    smoothed_pose_landmarks: list[dict] = [{} for _ in range(T)]
     for t in range(T):
         if not valid_mask[t]:
             continue
