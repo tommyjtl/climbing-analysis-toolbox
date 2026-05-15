@@ -302,7 +302,12 @@ def _serialize_pose_landmarks_for_metadata(landmarks, width, height):
 
 
 def _build_pose_metadata(
-    rendered_pose_landmarks, effective_fps, width, height, smoothing, pose_backend="mediapipe"
+    rendered_pose_landmarks,
+    effective_fps,
+    width,
+    height,
+    smoothing,
+    pose_backend="mediapipe",
 ):
     _BACKEND_LANDMARK_MODELS = {
         "mediapipe": "mediapipe_pose_33",

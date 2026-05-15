@@ -64,6 +64,6 @@ def test_supported_smoothing_methods_are_known():
     # "none" is the sentinel for disabling smoothing; the three real methods are:
     expected_methods = {"gaussian", "savgol", "smoothnet"}
     actual_methods = {c for c in captured_choices if c != "none"}
-    assert actual_methods == expected_methods, (
-        f"CLI --smoothing choices {actual_methods!r} don't match expected {expected_methods!r}"
-    )
+    assert (
+        actual_methods == expected_methods
+    ), f"CLI --smoothing choices {actual_methods!r} don't match expected {expected_methods!r}"
