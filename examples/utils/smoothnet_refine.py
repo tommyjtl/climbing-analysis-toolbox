@@ -21,11 +21,11 @@ Workflow:
   3. Re-run body_trajectory with --use_cached_landmarks pointing at the refined file.
 
 Usage:
-    python examples/scripts/smoothnet_refine.py \\
+    python examples/utils/smoothnet_refine.py \\
         --landmarks path/to/2_landmarks.json
 
     # custom output path and tuning knobs
-    python examples/scripts/smoothnet_refine.py \\
+    python examples/utils/smoothnet_refine.py \\
         --landmarks path/to/2_landmarks.json \\
         --output    path/to/2_landmarks_refined.json \\
         --window_size 32 \\

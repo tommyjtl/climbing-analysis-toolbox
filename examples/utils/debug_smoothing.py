@@ -4,16 +4,16 @@ Debug: compare raw vs SmoothNet-refined landmark positions.
 Usage
 -----
 # Run SmoothNet and plot inline:
-python examples/scripts/debug_smoothing.py \
+python examples/utils/debug_smoothing.py \
     --landmarks /path/to/2_landmarks.json
 
 # Compare two already-saved JSON files:
-python examples/scripts/debug_smoothing.py \
+python examples/utils/debug_smoothing.py \
     --landmarks /path/to/2_landmarks.json \
     --smoothed  /path/to/2_landmarks_smoothed.json
 
 # Also render an overlay video (raw=red, smoothed=green) for N frames:
-python examples/scripts/debug_smoothing.py \
+python examples/utils/debug_smoothing.py \
     --landmarks /path/to/2_landmarks.json \
     --video     /path/to/2.mov \
     --overlay_frames 200

@@ -1251,7 +1251,13 @@ def extract_pose_and_draw_trajectory(
     use_kalman = kalman_settings[0]  # whether to use Kalman filter
     measurement_variance = kalman_settings[1]  # variance for the Kalman filter
 
-    _apply_smoothing = smoothing is not None
+    _SUPPORTED_SMOOTHING_METHODS = {"gaussian", "savgol", "smoothnet"}
+    if smoothing is not None and smoothing not in _SUPPORTED_SMOOTHING_METHODS:
+        raise ValueError(
+            f"Unsupported smoothing method: {smoothing!r}. "
+            f"Supported methods are: {sorted(_SUPPORTED_SMOOTHING_METHODS)}"
+        )
+    _apply_smoothing = smoothing in _SUPPORTED_SMOOTHING_METHODS
 
     # Initialize video capture
     cap = cv2.VideoCapture(video_path)

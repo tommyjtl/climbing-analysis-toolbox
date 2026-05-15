@@ -29,6 +29,11 @@ dependencies = [
   "image-matching-models==1.1.0",
 ]
 
+[project.optional-dependencies]
+vitpose = [
+  "rtmlib",
+]
+
 [project.urls]
 "Homepage" = "https://github.com/tommyjtl/climbing-analysis-toolbox"
 

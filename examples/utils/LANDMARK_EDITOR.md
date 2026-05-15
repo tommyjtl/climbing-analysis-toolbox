@@ -25,7 +25,7 @@ depending on your settings).
 ### 2. Open the editor
 
 ```bash
-python examples/scripts/landmark_editor.py \
+python examples/utils/landmark_editor.py \
   --video_path path/to/climb.mov \
   --landmarks path/to/climb_landmarks.json
 ```

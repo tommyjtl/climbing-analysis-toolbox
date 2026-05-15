@@ -283,7 +283,14 @@ class ViTPoseDetector:
             device = _auto_detect_vitpose_device()
 
         from functools import partial
-        from rtmlib import PoseTracker, Custom
+        try:
+            from rtmlib import PoseTracker, Custom
+        except ImportError as exc:
+            raise ImportError(
+                "ViTPoseDetector requires the optional 'rtmlib' dependency. "
+                "Install it with: pip install cruxes[vitpose]  "
+                "(or directly: pip install rtmlib)"
+            ) from exc
 
         vitpose_cls = partial(
             Custom,

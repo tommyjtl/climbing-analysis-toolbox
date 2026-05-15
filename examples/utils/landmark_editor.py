@@ -366,7 +366,6 @@ class LandmarkEditor:
         fi = self.frame_idx
         if self.frames_data[fi] is None:
             return
-        self._push_undo()
         lm = self.frames_data[fi][lm_idx]
         lm["x"] = max(0.0, min(1.0, mx / self.vid_w))
         lm["y"] = max(0.0, min(1.0, my / self.vid_h))
@@ -471,6 +470,8 @@ class LandmarkEditor:
                     )
                     self.selected_idx = hit
                     self.dragging = hit is not None
+                    if self.dragging:
+                        self._push_undo()
 
             elif event == cv2.EVENT_MOUSEMOVE:
                 if self.dragging and self.selected_idx is not None:

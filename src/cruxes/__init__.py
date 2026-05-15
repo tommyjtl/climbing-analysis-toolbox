@@ -279,8 +279,8 @@ class Cruxes:
         smoothnet_epochs=100,
         smoothnet_lambda_accel=0.1,
         track_point_visibility_threshold=0.6,
-        pose_visibility_threshold=0.4,
-        pose_presence_threshold=0.4,
+        pose_visibility_threshold=0.2,
+        pose_presence_threshold=0.2,
         pose_backend="mediapipe",  # "mediapipe" or "vitpose"
         vitpose_device=None,  # device for ViTPose ("mps", "cpu", or None for auto)
         vitpose_det_frequency=3,  # how often YOLOX re-runs detection (every N frames)
