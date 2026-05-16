@@ -9,6 +9,7 @@ for video in "$DIR"/*.MOV; do
   echo "Processing: $(basename "$video")"
 
   python body_trajectory_demo.py \
+    --pose_backend "mediapipe" --smoothing "gaussian" \
     --video_path "$video"
 
   echo "Done: $(basename "$video")"
