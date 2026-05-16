@@ -480,6 +480,10 @@ def download_default_pose_model(destination_path):
     return str(destination_path)
 
 
+# Landmark indices that get a filled dot when drawing the pose skeleton.
+PRIMARY_JOINT_INDICES = frozenset([11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28])
+
+
 def draw_pose_landmarks(
     image,
     landmarks,
@@ -512,3 +516,8 @@ def draw_pose_landmarks(
             cv2.line(
                 image, coordinates[start_idx], coordinates[end_idx], color, thickness
             )
+
+    dot_radius = max(3, thickness * 2)
+    for idx, pt in coordinates.items():
+        if idx in PRIMARY_JOINT_INDICES:
+            cv2.circle(image, pt, dot_radius, color, -1, lineType=cv2.LINE_AA)

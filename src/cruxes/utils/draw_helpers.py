@@ -1,6 +1,85 @@
 import cv2
 import numpy as np
 
+# Each tuple is (centroid_landmark_index, radius_endpoint_landmark_index).
+# The circle is drawn at the centroid with radius = pixel distance to the endpoint,
+# visualising the full reach envelope — every position the endpoint could occupy
+# if the centroid joint stayed fixed at its current location.
+#
+# Groups allow callers to opt in to specific body regions, mirroring the track_point API.
+# Pass ["all"] to draw every group, or a subset like ["left_upper", "right_lower"].
+LIMB_REACH_CIRCLE_GROUPS = {
+    "left_upper": [
+        (15, 13),  # left wrist — left elbow
+        (13, 11),  # left elbow — left shoulder
+    ],
+    "right_upper": [
+        (16, 14),  # right wrist — right elbow
+        (14, 12),  # right elbow — right shoulder
+    ],
+    "left_lower": [
+        (23, 25),  # left hip — left knee
+        (23, 27),  # left hip — left ankle
+    ],
+    "right_lower": [
+        (24, 26),  # right hip — right knee
+        (24, 28),  # right hip — right ankle
+    ],
+}
+
+
+def draw_joint_circles(
+    frame,
+    landmarks,
+    color,
+    width,
+    height,
+    groups,
+    visibility_threshold=0.5,
+    presence_threshold=0.5,
+    thickness=2,
+    opacity=0.25,
+):
+    """Draw reach-envelope circles for the requested limb groups.
+
+    groups: list of region names — any of "left_upper", "right_upper",
+            "left_lower", "right_lower", or "all" to draw every group.
+    Each circle is centered at a joint with radius = pixel distance to its
+    paired joint, blended onto the frame at the given opacity."""
+    active_groups = list(LIMB_REACH_CIRCLE_GROUPS.keys()) if "all" in groups else groups
+    pairs = []
+    for g in active_groups:
+        pairs.extend(LIMB_REACH_CIRCLE_GROUPS.get(g, []))
+    if not pairs:
+        return
+
+    overlay = frame.copy()
+    drew_any = False
+    for centroid_idx, radius_idx in pairs:
+        if centroid_idx >= len(landmarks) or radius_idx >= len(landmarks):
+            continue
+        c = landmarks[centroid_idx]
+        r = landmarks[radius_idx]
+        c_vis = c.visibility if c.visibility is not None else 1.0
+        c_pres = c.presence if c.presence is not None else 1.0
+        r_vis = r.visibility if r.visibility is not None else 1.0
+        r_pres = r.presence if r.presence is not None else 1.0
+        if c_vis < visibility_threshold or c_pres < presence_threshold:
+            continue
+        if r_vis < visibility_threshold or r_pres < presence_threshold:
+            continue
+        cx = int(c.x * width)
+        cy = int(c.y * height)
+        rx = int(r.x * width)
+        ry = int(r.y * height)
+        radius = int(round(np.hypot(cx - rx, cy - ry)))
+        if radius <= 0:
+            continue
+        cv2.circle(overlay, (cx, cy), radius, color, thickness, lineType=cv2.LINE_AA)
+        drew_any = True
+    if drew_any:
+        cv2.addWeighted(overlay, opacity, frame, 1 - opacity, 0, frame)
+
 
 def draw_trajectory(canvas, traj, color, thickness=2):
     for i in range(1, len(traj)):

@@ -16,6 +16,7 @@ from .draw_helpers import (
     draw_colored_trajectory,
     draw_velocity_arrow,
     draw_telemetry_panel,
+    draw_joint_circles,
 )
 from .pose_helpers import get_track_point_coords
 from .pose_backend import (
@@ -1150,6 +1151,7 @@ def extract_pose_and_draw_trajectory(
     overlay_opacity=0.8,  # opacity for the overlay, value should between [0.0, 1.0]
     show_gauges=False,  # whether to show top-left telemetry text
     draw_pose=True,  # whether to draw the body pose skeleton
+    show_limb_reach_circles=None,  # list of region names to draw reach circles for: "left_upper", "right_upper", "left_lower", "right_lower", "all". None disables.
     pose_color=(
         255,
         255,
@@ -1788,6 +1790,18 @@ def extract_pose_and_draw_trajectory(
                             pose_landmarks_for_drawing,
                             color=pose_color,
                             thickness=2,
+                            visibility_threshold=pose_visibility_threshold,
+                            presence_threshold=pose_presence_threshold,
+                        )
+
+                    if show_limb_reach_circles and pose_landmarks_for_drawing:
+                        draw_joint_circles(
+                            frame,
+                            pose_landmarks_for_drawing,
+                            color=pose_color,
+                            width=width,
+                            height=height,
+                            groups=show_limb_reach_circles,
                             visibility_threshold=pose_visibility_threshold,
                             presence_threshold=pose_presence_threshold,
                         )

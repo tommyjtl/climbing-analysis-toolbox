@@ -37,18 +37,6 @@ def main():
         help="Export JSON artifacts only, without rendering an output video. This also enables the separate pose world landmarks export.",
     )
     parser.add_argument(
-        "--export_world_landmarks",
-        action="store_true",
-        default=False,
-        help="Export MediaPipe pose world landmarks to a separate WebGPU-friendly JSON file.",
-    )
-    parser.add_argument(
-        "--world_landmarks_json_path",
-        type=str,
-        default=None,
-        help="Optional path to the pose world landmarks JSON output.",
-    )
-    parser.add_argument(
         "--pose_backend",
         type=str,
         default="mediapipe",
@@ -110,12 +98,6 @@ def main():
         default=None,
         help="Scale factor for velocity arrow length (default: 40).",
     )
-    parser.add_argument(
-        "--use_cached_landmarks",
-        action="store_true",
-        default=False,
-        help="Load landmarks from a previously saved JSON cache instead of re-running pose detection. Falls back to re-detection if no valid cache exists.",
-    )
     args = parser.parse_args()
     if not args.video_path or args.video_path == "":
         print(
@@ -129,17 +111,8 @@ def main():
 
     # Print colored messages for debugging
     print(colored("Target video path:", "blue"), target_video_path)
-    print(
-        colored("Export world landmarks:", "blue"),
-        args.export_world_landmarks,
-    )
-    print(
-        colored("World landmarks JSON path:", "blue"),
-        args.world_landmarks_json_path,
-    )
     print(colored("Pose backend:", "blue"), args.pose_backend)
     print(colored("Smoothing:", "blue"), args.smoothing)
-    print(colored("Use cached landmarks:", "blue"), args.use_cached_landmarks)
 
     cruxes = Cruxes()
     cruxes.body_trajectory(
@@ -156,17 +129,23 @@ def main():
             "right_foot",
         ],
         draw_pose=True,
-        pose_color=(0, 0, 255),
+        show_limb_reach_circles=["left_upper", "right_upper"],
+        pose_color=(255, 255, 255),
         show_trajectory=True,
-        show_gauges=False,
         trajectory_history_seconds=0.2,
-        use_cached_landmarks=args.use_cached_landmarks,
-        # use_cached_trajectory_metadata=True,
-        # export_landmarks=True,
+        show_gauges=False,
+        # Use cached confi without starting from scratch
+        use_cached_landmarks=False,
+        use_cached_trajectory_metadata=False,
+        # Export options
+        export_landmarks=True,
         export_metadata=True,
+        export_world_landmarks=True,
+        world_landmarks_json_path=None,  # defaults to <video_stem>_pose_world_landmarks.json next to the video
+        # General settings
         overlay_mask=True,
         hide_original_video=False,
-        kalman_settings=[  # Kalman filter settings: [use_kalman : bool, kalman_gain : float]
+        kalman_settings=[  # Kalman filter settings: [use_kalman : bool, kal`man_gain : float]
             True,  # Set this to false if you don't want to apply Kalman filter
             0.5e0,  # >=1e0 for higher noise, <=1e-1 for lower noise
         ],
@@ -178,8 +157,6 @@ def main():
         smoothnet_window_size=args.smoothnet_window_size,
         smoothnet_epochs=args.smoothnet_epochs,
         smoothnet_lambda_accel=args.smoothnet_lambda_accel,
-        export_world_landmarks=args.export_world_landmarks,
-        world_landmarks_json_path=args.world_landmarks_json_path,
         pose_backend=args.pose_backend,
         trajectory_thickness=args.trajectory_thickness,
         velocity_arrow_length=args.velocity_arrow_length,
