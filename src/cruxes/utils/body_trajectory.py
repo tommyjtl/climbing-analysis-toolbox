@@ -1144,7 +1144,6 @@ def extract_pose_and_draw_trajectory(
     output_path=None,  # optional, if not provided, the output video will be saved in the `output` folder
     track_point=["hip_mid"],  # a list of track points to draw trajectory for
     json_only=False,
-    trajectory_only=False,
     hide_original_video=False,  # if True, the output video will have a black background instead of the original frames
     overlay_mask=False,  # if `True`, we draw trajectory on a semi-transparent black overlay
     overlay_trajectory=None,  # deprecated alias
@@ -1207,14 +1206,6 @@ def extract_pose_and_draw_trajectory(
         export_landmarks = True
         export_metadata = True
         export_world_landmarks = True
-
-    if trajectory_only:
-        hide_original_video = True
-        overlay_mask = False
-        draw_pose = False
-        show_trajectory = True
-        show_gauges = False
-        use_cached_trajectory_metadata = True
 
     if export_trajectory_metadata is not None:
         export_metadata = export_metadata or export_trajectory_metadata

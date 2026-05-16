@@ -37,24 +37,6 @@ def main():
         help="Export JSON artifacts only, without rendering an output video. This also enables the separate pose world landmarks export.",
     )
     parser.add_argument(
-        "--track_point_visibility_threshold",
-        type=float,
-        default=0.6,
-        help="Minimum visibility required for tracked joints and derived track points.",
-    )
-    parser.add_argument(
-        "--pose_visibility_threshold",
-        type=float,
-        default=0.4,
-        help="Minimum visibility required to render a pose landmark.",
-    )
-    parser.add_argument(
-        "--pose_presence_threshold",
-        type=float,
-        default=0.4,
-        help="Minimum presence required to render a pose landmark.",
-    )
-    parser.add_argument(
         "--export_world_landmarks",
         action="store_true",
         default=False,
@@ -148,18 +130,6 @@ def main():
     # Print colored messages for debugging
     print(colored("Target video path:", "blue"), target_video_path)
     print(
-        colored("Track point visibility threshold:", "blue"),
-        args.track_point_visibility_threshold,
-    )
-    print(
-        colored("Pose visibility threshold:", "blue"),
-        args.pose_visibility_threshold,
-    )
-    print(
-        colored("Pose presence threshold:", "blue"),
-        args.pose_presence_threshold,
-    )
-    print(
         colored("Export world landmarks:", "blue"),
         args.export_world_landmarks,
     )
@@ -185,8 +155,6 @@ def main():
             "left_foot",
             "right_foot",
         ],
-        # trajectory_only=True,
-        #
         draw_pose=True,
         pose_color=(0, 0, 255),
         show_trajectory=True,
@@ -197,11 +165,12 @@ def main():
         # export_landmarks=True,
         export_metadata=True,
         overlay_mask=True,
-        hide_original_video=True,
+        hide_original_video=False,
         kalman_settings=[  # Kalman filter settings: [use_kalman : bool, kalman_gain : float]
             True,  # Set this to false if you don't want to apply Kalman filter
             0.5e0,  # >=1e0 for higher noise, <=1e-1 for lower noise
         ],
+        # additional args
         smoothing=args.smoothing,
         savgol_window=args.savgol_window,
         savgol_order=args.savgol_order,
@@ -209,9 +178,6 @@ def main():
         smoothnet_window_size=args.smoothnet_window_size,
         smoothnet_epochs=args.smoothnet_epochs,
         smoothnet_lambda_accel=args.smoothnet_lambda_accel,
-        track_point_visibility_threshold=args.track_point_visibility_threshold,
-        pose_visibility_threshold=args.pose_visibility_threshold,
-        pose_presence_threshold=args.pose_presence_threshold,
         export_world_landmarks=args.export_world_landmarks,
         world_landmarks_json_path=args.world_landmarks_json_path,
         pose_backend=args.pose_backend,

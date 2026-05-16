@@ -243,7 +243,6 @@ class Cruxes:
             # "right_foot",
         ],
         json_only=False,
-        trajectory_only=False,
         overlay_mask=False,
         overlay_trajectory=None,  # deprecated alias
         hide_original_video=False,
@@ -309,7 +308,6 @@ class Cruxes:
             output_path=output_video_path,
             track_point=track_point,
             json_only=json_only,
-            trajectory_only=trajectory_only,
             overlay_mask=overlay_mask,
             hide_original_video=hide_original_video,
             draw_pose=draw_pose,

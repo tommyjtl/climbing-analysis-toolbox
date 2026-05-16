@@ -120,10 +120,6 @@ def test_cli_default_json_only_is_false():
     assert _parse_body_trajectory().get("json_only") is False
 
 
-def test_cli_default_trajectory_only_is_false():
-    assert _parse_body_trajectory().get("trajectory_only") is False
-
-
 def test_cli_default_draw_pose_is_false():
     # draw_pose defaults to False in CLI (user must opt-in)
     assert _parse_body_trajectory().get("draw_pose") is False
@@ -232,10 +228,6 @@ def test_cli_track_point_whitespace_stripped():
 
 def test_cli_json_only_flag():
     assert _parse_body_trajectory("--json_only").get("json_only") is True
-
-
-def test_cli_trajectory_only_flag():
-    assert _parse_body_trajectory("--trajectory_only").get("trajectory_only") is True
 
 
 def test_cli_show_trajectory_flag():

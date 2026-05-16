@@ -191,7 +191,6 @@ There is a couple of settings you can adjust inside the script for `extract_pose
 | - | - |
 | `track_point`  | Points of interest on the estimated pose you want to track. A velocity vector arrow will be drawn to indicate how fast each point is moving with respect to its 3D position |
 | `json_only`  | Export JSON artifacts only. This skips rendered video and PNG outputs and forces landmarks, metadata, and pose world landmarks JSON exports on |
-| `trajectory_only`  | Render only the trajectory on a black background. This disables pose drawing and telemetry, forces trajectory drawing on, and prefers cached trajectory metadata if available |
 | `overlay_mask`  | Whether to overlay a half-transparent mask on top of the original video. |
 | `hide_original_video`  | Whether to use a black background instead of the original video (useful for creating clean trajectory visualizations) |
 | `draw_pose`  | Whether to draw pose skeleton or not |
@@ -214,7 +213,7 @@ There is a couple of settings you can adjust inside the script for `extract_pose
 | `pose_visibility_threshold`  | Minimum landmark visibility required to render a pose landmark in the skeleton overlay |
 | `pose_presence_threshold`  | Minimum landmark presence required to render a pose landmark in the skeleton overlay |
 
-For CLI usage, `--show_trajectory` is required in the normal overlay mode. If you use `--trajectory_only`, trajectory drawing is enabled automatically. If you use `--json_only`, rendering flags are ignored and only the JSON artifacts are written.
+For CLI usage, `--show_trajectory` is required to draw trajectories. If you use `--json_only`, rendering flags are ignored and only the JSON artifacts are written.
 
 The dedicated pose world landmarks file is intended for 3D playback workflows such as the WebGPU sample player in the `webgpu-samples` repository. It contains the raw 33-landmark MediaPipe world coordinates in meters, rooted at the hip midpoint, plus a rough cumulative `x/y` root-translation estimate derived from hip motion in the video. The WebGPU player can toggle that estimate on or off.
 
@@ -237,9 +236,7 @@ Then, run the command as follows:
 # CLI usage
 cruxes body-trajectory \
 --video_path "examples/videos/body-trajectory-input.mp4" \
---trajectory_only \
---overlay_mask \
---draw_pose \
+--hide_original_video \
 --show_trajectory \
 --show_gauges \
 --trajectory_history_seconds 2 \
@@ -256,10 +253,10 @@ cruxes body-trajectory \
 --pose_visibility_threshold 0.4 \
 --pose_presence_threshold 0.4
 # Additional options:
-# --hide_original_video  # Use black background
+# --draw_pose  # Draw pose skeleton on the output
+# --overlay_mask  # Overlay semi-transparent mask
 # --metadata_path ./my_metadata.json
 # --world_landmarks_json_path ./my_pose_world_landmarks.json
-# In trajectory_only mode, pose drawing and telemetry are disabled automatically.
 ```
 
 ```python
@@ -279,7 +276,6 @@ cruxes.body_trajectory(
         "right_foot",
     ],
     json_only=False,  # Set True to export JSON artifacts only
-    trajectory_only=False,  # Set True for black-background trajectory-only output
     overlay_mask=False,
     hide_original_video=False,
     draw_pose=True,

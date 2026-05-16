@@ -108,12 +108,6 @@ def main():
         help="Comma-separated points of interest to track. Available: hip_mid, upper_body_center, head, left_hand, right_hand, left_foot, right_foot",
     )
     body_parser.add_argument(
-        "--trajectory_only",
-        action="store_true",
-        default=False,
-        help="Render only the trajectory on a black background. This disables pose drawing and telemetry, forces trajectory drawing on, and prefers cached trajectory metadata if available.",
-    )
-    body_parser.add_argument(
         "--json_only",
         action="store_true",
         default=False,
@@ -289,7 +283,6 @@ def main():
             args.video_path,
             track_point=track_points,
             json_only=args.json_only,
-            trajectory_only=args.trajectory_only,
             hide_original_video=args.hide_original_video,
             draw_pose=args.draw_pose,
             overlay_mask=args.overlay_mask,
