@@ -7,24 +7,18 @@ import numpy as np
 # if the centroid joint stayed fixed at its current location.
 #
 # Groups allow callers to opt in to specific body regions, mirroring the track_point API.
-# Pass ["all"] to draw every group, or a subset like ["left_upper", "right_lower"].
+# Pass ["all"] to draw every group, or a subset like ["left_forearm", "right_upper_arm"].
 LIMB_REACH_CIRCLE_GROUPS = {
-    "left_upper": [
-        (15, 13),  # left wrist — left elbow
-        (13, 11),  # left elbow — left shoulder
-    ],
-    "right_upper": [
-        (16, 14),  # right wrist — right elbow
-        (14, 12),  # right elbow — right shoulder
-    ],
-    "left_lower": [
-        (23, 25),  # left hip — left knee
-        (23, 27),  # left hip — left ankle
-    ],
-    "right_lower": [
-        (24, 26),  # right hip — right knee
-        (24, 28),  # right hip — right ankle
-    ],
+    # Arm segments
+    "left_forearm": [(15, 13)],  # left wrist — left elbow
+    "left_upper_arm": [(13, 11)],  # left elbow — left shoulder
+    "right_forearm": [(16, 14)],  # right wrist — right elbow
+    "right_upper_arm": [(14, 12)],  # right elbow — right shoulder
+    # Leg segments
+    "left_shin": [(25, 27)],  # left knee — left ankle
+    "left_thigh": [(23, 25)],  # left hip — left knee
+    "right_shin": [(26, 28)],  # right knee — right ankle
+    "right_thigh": [(24, 26)],  # right hip — right knee
 }
 
 
@@ -38,7 +32,7 @@ def draw_joint_circles(
     visibility_threshold=0.5,
     presence_threshold=0.5,
     thickness=2,
-    opacity=0.25,
+    opacity=0.8,
 ):
     """Draw reach-envelope circles for the requested limb groups.
 

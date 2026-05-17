@@ -247,7 +247,13 @@ class Cruxes:
         overlay_trajectory=None,  # deprecated alias
         hide_original_video=False,
         draw_pose=True,
-        show_limb_reach_circles=None,  # list of region names: "left_upper", "right_upper", "left_lower", "right_lower", "all". None disables.
+        show_limb_reach_circles=None,
+        # list of segment names:
+        # "left_forearm", "left_upper_arm",
+        # "right_forearm", "right_upper_arm",
+        # "left_shin", "left_thigh",
+        # "right_shin", "right_thigh",
+        # or "all". None disables.
         pose_color=(
             255,
             255,

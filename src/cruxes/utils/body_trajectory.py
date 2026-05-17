@@ -81,6 +81,7 @@ VELOCITY_ARROW_LENGTH = 40
 # now defaults to TRAJECTORY_THICKNESS and can be overridden via the
 # trajectory_thickness argument (which affects both lines and arrows together).
 VELOCITY_ARROW_THICKNESS = 5
+LIMB_REACH_CIRCLE_COLOR = (255, 0, 255)  # magenta in BGR
 TRAJECTORY_METADATA_SCHEMA_VERSION = "1.1"  # processing.savgol -> processing.smoothing
 WORLD_LANDMARKS_SCHEMA_VERSION = "1.0"
 DEFAULT_VELOCITY_COLOR_PRESET = "ice_blue_candle"
@@ -1151,7 +1152,7 @@ def extract_pose_and_draw_trajectory(
     overlay_opacity=0.8,  # opacity for the overlay, value should between [0.0, 1.0]
     show_gauges=False,  # whether to show top-left telemetry text
     draw_pose=True,  # whether to draw the body pose skeleton
-    show_limb_reach_circles=None,  # list of region names to draw reach circles for: "left_upper", "right_upper", "left_lower", "right_lower", "all". None disables.
+    show_limb_reach_circles=None,  # list of segment names: "left_forearm", "left_upper_arm", "right_forearm", "right_upper_arm", "left_shin", "left_thigh", "right_shin", "right_thigh", or "all". None disables.
     pose_color=(
         255,
         255,
@@ -1798,7 +1799,7 @@ def extract_pose_and_draw_trajectory(
                         draw_joint_circles(
                             frame,
                             pose_landmarks_for_drawing,
-                            color=pose_color,
+                            color=LIMB_REACH_CIRCLE_COLOR,
                             width=width,
                             height=height,
                             groups=show_limb_reach_circles,
