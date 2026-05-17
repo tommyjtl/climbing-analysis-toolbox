@@ -254,6 +254,7 @@ class Cruxes:
         # "left_shin", "left_thigh",
         # "right_shin", "right_thigh",
         # or "all". None disables.
+        show_joint_angle_arcs=None,  # list of (a, b, c) index triplets; arc drawn at b spanning the angle a-b-c. None disables.
         pose_color=(
             255,
             255,
@@ -319,6 +320,7 @@ class Cruxes:
             hide_original_video=hide_original_video,
             draw_pose=draw_pose,
             show_limb_reach_circles=show_limb_reach_circles,
+            show_joint_angle_arcs=show_joint_angle_arcs,
             pose_color=pose_color,
             show_gauges=show_gauges,
             show_trajectory=show_trajectory,

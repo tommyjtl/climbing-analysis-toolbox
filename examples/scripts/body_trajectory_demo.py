@@ -120,8 +120,8 @@ def main():
         json_only=args.json_only,
         # tracking relevant
         track_point=[
-            "hip_mid",
-            # "upper_body_center",
+            # "hip_mid",
+            "upper_body_center",
             # "head",
             "left_hand",
             "right_hand",
@@ -133,13 +133,20 @@ def main():
             "left_forearm",
             # "left_upper_arm",
             "right_forearm",
-            # "right_upper_arm",
-            "left_shin",
-            "right_shin",
+            # # "right_upper_arm",
+            # "left_shin",
+            # "right_shin",
+        ],
+        show_joint_angle_arcs=[
+            # MediaPipe indices: shoulder=11/12, elbow=13/14, wrist=15/16, hip=23/24, knee=25/26
+            (11, 13, 15),  # left elbow angle
+            (12, 14, 16),  # right elbow angle
+            (26, 24, 23),
+            (25, 23, 24),
         ],
         pose_color=(255, 255, 255),
         show_trajectory=True,
-        trajectory_history_seconds=0.2,
+        trajectory_history_seconds=1.0,
         show_gauges=False,
         # Use cached confi without starting from scratch
         use_cached_landmarks=False,

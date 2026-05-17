@@ -17,6 +17,7 @@ from .draw_helpers import (
     draw_velocity_arrow,
     draw_telemetry_panel,
     draw_joint_circles,
+    draw_joint_angle_arcs,
 )
 from .pose_helpers import get_track_point_coords
 from .pose_backend import (
@@ -82,6 +83,8 @@ VELOCITY_ARROW_LENGTH = 40
 # trajectory_thickness argument (which affects both lines and arrows together).
 VELOCITY_ARROW_THICKNESS = 5
 LIMB_REACH_CIRCLE_COLOR = (255, 0, 255)  # magenta in BGR
+JOINT_ANGLE_ARC_COLOR = (0, 255, 255)  # yellow in BGR
+JOINT_ANGLE_ARC_RADIUS = 20  # fixed arc radius in pixels
 TRAJECTORY_METADATA_SCHEMA_VERSION = "1.1"  # processing.savgol -> processing.smoothing
 WORLD_LANDMARKS_SCHEMA_VERSION = "1.0"
 DEFAULT_VELOCITY_COLOR_PRESET = "ice_blue_candle"
@@ -1153,6 +1156,7 @@ def extract_pose_and_draw_trajectory(
     show_gauges=False,  # whether to show top-left telemetry text
     draw_pose=True,  # whether to draw the body pose skeleton
     show_limb_reach_circles=None,  # list of segment names: "left_forearm", "left_upper_arm", "right_forearm", "right_upper_arm", "left_shin", "left_thigh", "right_shin", "right_thigh", or "all". None disables.
+    show_joint_angle_arcs=None,  # list of (a, b, c) index triplets; arc drawn at b spanning the angle a-b-c. None disables.
     pose_color=(
         255,
         255,
@@ -1227,6 +1231,18 @@ def extract_pose_and_draw_trajectory(
         "pose_presence_threshold",
         pose_presence_threshold,
     )
+
+    if show_joint_angle_arcs:
+        for triplet in show_joint_angle_arcs:
+            if len(triplet) != 3:
+                raise ValueError(
+                    f"Each joint angle arc triplet must have exactly 3 indices, got {len(triplet)}: {triplet}"
+                )
+            a_idx, b_idx, c_idx = triplet
+            if len({a_idx, b_idx, c_idx}) != 3:
+                raise ValueError(
+                    f"Joint angle arc triplet indices must be distinct, got: {triplet}"
+                )
 
     landmarks_cache_path = None
     if use_cached_landmarks or export_landmarks:
@@ -1803,6 +1819,19 @@ def extract_pose_and_draw_trajectory(
                             width=width,
                             height=height,
                             groups=show_limb_reach_circles,
+                            visibility_threshold=pose_visibility_threshold,
+                            presence_threshold=pose_presence_threshold,
+                        )
+
+                    if show_joint_angle_arcs and pose_landmarks_for_drawing:
+                        draw_joint_angle_arcs(
+                            frame,
+                            pose_landmarks_for_drawing,
+                            triplets=show_joint_angle_arcs,
+                            color=JOINT_ANGLE_ARC_COLOR,
+                            radius=JOINT_ANGLE_ARC_RADIUS,
+                            width=width,
+                            height=height,
                             visibility_threshold=pose_visibility_threshold,
                             presence_threshold=pose_presence_threshold,
                         )

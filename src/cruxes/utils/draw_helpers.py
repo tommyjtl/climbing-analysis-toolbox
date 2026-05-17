@@ -1,4 +1,5 @@
 import cv2
+import math
 import numpy as np
 
 # Each tuple is (centroid_landmark_index, radius_endpoint_landmark_index).
@@ -73,6 +74,82 @@ def draw_joint_circles(
         drew_any = True
     if drew_any:
         cv2.addWeighted(overlay, opacity, frame, 1 - opacity, 0, frame)
+
+
+def draw_joint_angle_arcs(
+    frame,
+    landmarks,
+    triplets,
+    color,
+    radius,
+    width,
+    height,
+    visibility_threshold=0.5,
+    presence_threshold=0.5,
+    thickness=2,
+):
+    """Draw an arc at the middle joint of each (a, b, c) triplet, spanning the
+    angle formed by the two bone lines b→a and b→c.
+
+    triplets: list of 3-element tuples of landmark indices, e.g. [(11, 13, 15)].
+              b (index 1) is the vertex joint; a and b (indices 0 and 2) are the
+              two endpoints. Each triplet must contain three distinct indices.
+    radius:   fixed arc radius in pixels.
+    """
+    for triplet in triplets:
+        a_idx, b_idx, c_idx = triplet
+        b = landmarks[b_idx]
+        a = landmarks[a_idx]
+        c = landmarks[c_idx]
+
+        b_vis = b.visibility if b.visibility is not None else 1.0
+        b_pres = b.presence if b.presence is not None else 1.0
+        a_vis = a.visibility if a.visibility is not None else 1.0
+        a_pres = a.presence if a.presence is not None else 1.0
+        c_vis = c.visibility if c.visibility is not None else 1.0
+        c_pres = c.presence if c.presence is not None else 1.0
+
+        if (
+            b_vis < visibility_threshold
+            or b_pres < presence_threshold
+            or a_vis < visibility_threshold
+            or a_pres < presence_threshold
+            or c_vis < visibility_threshold
+            or c_pres < presence_threshold
+        ):
+            continue
+
+        bx, by = int(b.x * width), int(b.y * height)
+        ax, ay = int(a.x * width), int(a.y * height)
+        cx, cy = int(c.x * width), int(c.y * height)
+
+        va = (ax - bx, ay - by)
+        vc = (cx - bx, cy - by)
+
+        if va == (0, 0) or vc == (0, 0):
+            continue
+
+        angle_a = math.degrees(math.atan2(va[1], va[0])) % 360
+        angle_c = math.degrees(math.atan2(vc[1], vc[0])) % 360
+
+        # Always draw the smaller arc sweep
+        cw_sweep = (angle_c - angle_a) % 360
+        if cw_sweep <= 180:
+            start, sweep = angle_a, cw_sweep
+        else:
+            start, sweep = angle_c, 360 - cw_sweep
+
+        cv2.ellipse(
+            frame,
+            (bx, by),
+            (radius, radius),
+            0,
+            start,
+            start + sweep,
+            color,
+            thickness,
+            cv2.LINE_AA,
+        )
 
 
 def draw_trajectory(canvas, traj, color, thickness=2):
